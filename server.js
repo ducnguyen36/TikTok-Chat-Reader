@@ -61,6 +61,9 @@ io.on('connection', (socket) => {
         tiktokConnectionWrapper.connection.on('streamEnd', () => socket.emit('streamEnd'));
 
         // Redirect message events
+        tiktokConnectionWrapper.connection.on('rawData', (messageTypeName, binary) => {
+            socket.emit('rawData', messageTypeName, binary);
+        })
         tiktokConnectionWrapper.connection.on('roomUser', msg => socket.emit('roomUser', msg));
         tiktokConnectionWrapper.connection.on('member', msg => socket.emit('member', msg));
         tiktokConnectionWrapper.connection.on('chat', msg => socket.emit('chat', msg));
@@ -74,6 +77,14 @@ io.on('connection', (socket) => {
         tiktokConnectionWrapper.connection.on('emote', msg => socket.emit('emote', msg));
         tiktokConnectionWrapper.connection.on('envelope', msg => socket.emit('envelope', msg));
         tiktokConnectionWrapper.connection.on('subscribe', msg => socket.emit('subscribe', msg));
+        tiktokConnectionWrapper.connection.on('liveMember', msg => {
+            console.log("Live Member",msg);
+            socket.emit('liveMember', msg)}
+        );
+        tiktokConnectionWrapper.connection.on('competition', msg => {
+            console.log("Competition",msg);    
+            socket.emit('competition', msg)
+        });
     });
 
     socket.on('disconnect', () => {
