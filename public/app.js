@@ -339,11 +339,11 @@ connection.on('competition', (msg) => {
         if (team1Score > team2Score) {
             $("#pkCompetitor .memberContainer").eq(0).css('background-color', 'yellow');
             $("#pkCompetitor .memberContainer").eq(1).css('background-color', '');
-            $("#pkCompetitor h1").text("PK");
+            // $("#pkCompetitor h1").text("PK");
         } else if (team2Score > team1Score) {
             $("#pkCompetitor .memberContainer").eq(1).css('background-color', 'yellow');
             $("#pkCompetitor .memberContainer").eq(0).css('background-color', '');
-            $("#pkCompetitor h1").text("PK");
+            // $("#pkCompetitor h1").text("PK");
         } else { // Draw condition
             $("#pkCompetitor .memberContainer").eq(0).css('background-color', '');
             $("#pkCompetitor .memberContainer").eq(1).css('background-color', '');
