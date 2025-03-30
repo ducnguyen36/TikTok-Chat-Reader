@@ -37,7 +37,7 @@ function connect() {
             likeCount = 0;
             diamondsCount = 0;
             updateRoomStats();
-
+            $('#pkCompetitor').empty(); // Clear any existing content
         }).catch(errorMessage => {
             $('#stateText').text(errorMessage);
 
@@ -347,7 +347,7 @@ connection.on('competition', (msg) => {
         } else { // Draw condition
             $("#pkCompetitor .memberContainer").eq(0).css('background-color', '');
             $("#pkCompetitor .memberContainer").eq(1).css('background-color', '');
-            $("#pkCompetitor h1").text("DRAW");
+            // $("#pkCompetitor h1").text("DRAW");
         }
     } 
     // Stage 3: Competition end – update scores and mark winners (Status 5)
