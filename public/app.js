@@ -375,6 +375,7 @@ connection.on('competition', (msg) => {
   });
 //live member
 connection.on('liveMember', (msg) => {
+  if(talents.length > 0) return;
     // console.log('window href:',window.location.href);
     // if(!window.location.href.includes('index.html')) return;
     // console.log('Event LIVE group member', msg);
