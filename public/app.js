@@ -257,7 +257,7 @@ connection.on('competition', (msg) => {
   // Fallback: if update or end events come and #pkCompetitor is empty,
   // initialize it using talents and the competitor details from the message.
   if ((msg.status === 6 || msg.status === 5) && $("#pkCompetitor").is(':empty')) {
-    console.log('PK UI is empty, initializing with talents and message details.', msg);
+    // console.log('PK UI is empty, initializing with talents and message details.', msg);
     // Get competitor details from the message (update or end)
     var details = (msg.status === 6) ?
       msg.memberCompetition.memberCompetitionDetails :
@@ -357,10 +357,10 @@ connection.on('competition', (msg) => {
         details.forEach(function(detail, index) {
           // Update the score in the corresponding container
           $("#pkCompetitor .memberContainer").eq(index).find(".memberScore").text(detail.score);
-          console.log('team',index,detail.winningStatus);
+        //   console.log('team',index,detail.winningStatus);
           // Determine background color: winningStatus 1 => yellow (win), 2 => blue (lose)
           var bgColor = (detail.winningStatus === 1) ? 'yellow' : (detail.winningStatus === 2) ? 'blue' : '';
-          console.log('team bgColor',bgColor);
+        //   console.log('team bgColor',bgColor);
           $("#pkCompetitor .memberContainer").eq(index).css('background-color', bgColor);
         });
         
@@ -375,9 +375,9 @@ connection.on('competition', (msg) => {
   });
 //live member
 connection.on('liveMember', (msg) => {
-    console.log('window href:',window.location.href);
+    // console.log('window href:',window.location.href);
     // if(!window.location.href.includes('index.html')) return;
-    console.log('Event LIVE group member', msg);
+    // console.log('Event LIVE group member', msg);
     talents = msg.liveMembers.map(function(member) {
         member.score = 0; // Default score; adjust logic as needed
         return member;
