@@ -221,7 +221,63 @@ var talents =[];
 //   });
 connection.on('competition', (msg) => {
     console.log('Event competition', msg);
-  
+    
+    // Helper: initialize PK UI given an array of two competitor objects
+  function initPKCompetitor(competitors) {
+    if (competitors.length === 2) {
+      var competitor1 = competitors[0];
+      var competitor2 = competitors[1];
+
+      var competitor1HTML = `
+        <div class="memberContainer" data-userid="${competitor1.userId}">
+          <div class="memberAvatar">
+            <img src="${competitor1.profilePicture.urls[0]}" alt="${competitor1.userId}">
+          </div>
+          <div class="memberInfo">
+            <div class="memberNickname">${competitor1.nickname}</div>
+            <div class="memberScore">0</div>
+          </div>
+        </div>`;
+
+      var competitor2HTML = `
+        <div class="memberContainer" data-userid="${competitor2.userId}">
+          <div class="memberAvatar">
+            <img src="${competitor2.profilePicture.urls[0]}" alt="${competitor2.userId}">
+          </div>
+          <div class="memberInfo">
+            <div class="memberNickname">${competitor2.nickname}</div>
+            <div class="memberScore">0</div>
+          </div>
+        </div>`;
+
+      $("#pkCompetitor").html(competitor1HTML + '<h1>PK</h1>' + competitor2HTML);
+    }
+  }
+
+  // Fallback: if update or end events come and #pkCompetitor is empty,
+  // initialize it using talents and the competitor details from the message.
+  if ((msg.status === 6 || msg.status === 5) && $("#pkCompetitor").is(':empty')) {
+    console.log('PK UI is empty, initializing with talents and message details.', msg);
+    // Get competitor details from the message (update or end)
+    var details = (msg.status === 6) ?
+      msg.memberCompetition.memberCompetitionDetails :
+      msg.endCompetition.memberCompetitionDetails;
+    
+    // For each detail, try to find matching talent from talents.liveMembers.
+    // Build an array of two competitor objects.
+    var competitors = details.map(function(detail) {
+      var talent = talents.find(function(member) {
+        return member.userId === detail.userId;
+      });
+      return talent;
+    });
+    // If not exactly two found, fallback to the first two talents.
+    if (competitors.length !== 2) {
+      competitors = talents.liveMembers.slice(0, 2);
+    }
+    initPKCompetitor(competitors);
+  }
+
     // Stage 1: Initialization – build the competitor UI (Status 3)
     if (msg.status === 3) {
       // Clear the current PK UI container
@@ -278,6 +334,21 @@ connection.on('competition', (msg) => {
       // Update the score elements for each competitor
       $("#pkCompetitor .memberContainer").eq(0).find(".memberScore").text(team1Score);
       $("#pkCompetitor .memberContainer").eq(1).find(".memberScore").text(team2Score);
+
+      // Compare scores and update background colors accordingly
+        if (team1Score > team2Score) {
+            $("#pkCompetitor .memberContainer").eq(0).css('background-color', 'yellow');
+            $("#pkCompetitor .memberContainer").eq(1).css('background-color', '');
+            $("#pkCompetitor h1").text("PK");
+        } else if (team2Score > team1Score) {
+            $("#pkCompetitor .memberContainer").eq(1).css('background-color', 'yellow');
+            $("#pkCompetitor .memberContainer").eq(0).css('background-color', '');
+            $("#pkCompetitor h1").text("PK");
+        } else { // Draw condition
+            $("#pkCompetitor .memberContainer").eq(0).css('background-color', '');
+            $("#pkCompetitor .memberContainer").eq(1).css('background-color', '');
+            $("#pkCompetitor h1").text("DRAW");
+        }
     } 
     // Stage 3: Competition end – update scores and mark winners (Status 5)
     else if (msg.status === 5) {
