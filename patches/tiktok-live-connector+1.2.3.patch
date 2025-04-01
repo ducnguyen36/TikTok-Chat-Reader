@@ -1,0 +1,210 @@
+diff --git a/node_modules/tiktok-live-connector/dist/index.js b/node_modules/tiktok-live-connector/dist/index.js
+index 30a69f2..97cbeb5 100644
+--- a/node_modules/tiktok-live-connector/dist/index.js
++++ b/node_modules/tiktok-live-connector/dist/index.js
+@@ -81,7 +81,9 @@ const MessageEvents = {
+ };
+ const CustomEvents = {
+   FOLLOW: 'follow',
+-  SHARE: 'share'
++  SHARE: 'share',
++  LIVEMEMBER: 'liveMember',
++  COMPETITION: 'competition',
+ };
+ /**
+  * Wrapper class for TikTok's internal Webcast Push Service
+@@ -689,7 +691,8 @@ function _processWebcastResponse2(webcastResponse) {
+ 
+   webcastResponse.messages.filter(x => x.decodedData).forEach(message => {
+     var _simplifiedObj$displa, _simplifiedObj$displa2;
+-
++    //test type message gift log decode data
++    // if(message.type === 'WebcastGiftMessage') console.log(message.decodedData);
+     let simplifiedObj = simplifyObject(message.decodedData);
+     this.emit(ControlEvents.DECODEDDATA, message.type, simplifiedObj, message.binary);
+ 
+@@ -774,6 +777,13 @@ function _processWebcastResponse2(webcastResponse) {
+       case 'WebcastSubNotifyMessage':
+         this.emit(MessageEvents.SUBSCRIBE, simplifiedObj);
+         break;
++      //added WebcastGroupLiveMemberNotifyMessage
++      case 'WebcastGroupLiveMemberNotifyMessage':
++        this.emit(CustomEvents.LIVEMEMBER, simplifiedObj);
++        break;
++      case 'WebcastCompetitionMessage':
++        this.emit(CustomEvents.COMPETITION, simplifiedObj);
++        break;
+     }
+   });
+ }
+diff --git a/node_modules/tiktok-live-connector/dist/lib/webcastDataConverter.js b/node_modules/tiktok-live-connector/dist/lib/webcastDataConverter.js
+index 85c65a8..74769ad 100644
+--- a/node_modules/tiktok-live-connector/dist/lib/webcastDataConverter.js
++++ b/node_modules/tiktok-live-connector/dist/lib/webcastDataConverter.js
+@@ -6,6 +6,8 @@
+  * This makes it easier to handle the data later, since some libraries have problems to serialize this protobuf specific data.
+  */
+ function simplifyObject(webcastObject) {
++ 
++  
+   if (webcastObject.questionDetails) {
+     Object.assign(webcastObject, webcastObject.questionDetails);
+     delete webcastObject.questionDetails;
+@@ -25,7 +27,14 @@ function simplifyObject(webcastObject) {
+     Object.assign(webcastObject, webcastObject.eventDetails);
+     delete webcastObject.eventDetails;
+   }
+-
++  if(webcastObject.giftUserDetails) {
++    if(webcastObject.giftUserDetails.length >3){
++      // If there are more than 3 users, we assume that the first one is the sender and the second one is the receiver
++      webcastObject.receiverUserDetails = getUserAttributes(webcastObject.giftUserDetails[1].userDetails.user);
++      // Object.assign(webcastObject, getUserAttributes(webcastObject.giftUserDetails[1]));
++    }
++    delete webcastObject.giftUserDetails;
++  }
+   if (webcastObject.topViewers) {
+     webcastObject.topViewers = getTopViewerAttributes(webcastObject.topViewers);
+   }
+@@ -59,7 +68,23 @@ function simplifyObject(webcastObject) {
+     });
+     delete webcastObject.battleItems;
+   }
+-
++  // reformat the webcastObject competition
++  
++  // if(webcastObject.memberCompetition || webcastObject.endCompetition || webcastObject.initCompetition){
++  //   console.log("webcastObject",webcastObject);
++  //   if(webcastObject.memberCompetition){
++  //     Object.assign(webcastObject.memberCompetition, webcastObject.memberCompetition.memberCompetitionDetails);
++  //     // delete webcastObject.memberCompetition;
++  //   }
++  //   if(webcastObject.endCompetition){
++  //     Object.assign(webcastObject.memberCompetition, webcastObject.endCompetition.endCompetitionDetails);
++  //     delete webcastObject.endCompetition;
++  //   }
++  //   if(webcastObject.initCompetition){
++  //     Object.assign(webcastObject.memberCompetition, webcastObject.initCompetition.initCompetitionDetails);
++  //     // delete webcastObject.initCompetition;
++  //   }
++  // }
+   if (webcastObject.giftId) {
+     var _webcastObject$giftDe;
+ 
+diff --git a/node_modules/tiktok-live-connector/dist/lib/webcastProtobuf.js b/node_modules/tiktok-live-connector/dist/lib/webcastProtobuf.js
+index c29af24..6aca8cb 100644
+--- a/node_modules/tiktok-live-connector/dist/lib/webcastProtobuf.js
++++ b/node_modules/tiktok-live-connector/dist/lib/webcastProtobuf.js
+@@ -52,8 +52,11 @@ function deserializeMessage(protoName, binaryMessage) {
+         case 'WebcastEmoteChatMessage':
+         case 'WebcastEnvelopeMessage':
+         case 'WebcastSubNotifyMessage':
++        case 'WebcastGroupLiveMemberNotifyMessage':
++        case 'WebcastCompetitionMessage':
+           message.decodedData = tiktokSchema.lookupType(`TikTok.${message.type}`).decode(message.binary);
+           break;
++        
+       }
+     });
+   }
+diff --git a/node_modules/tiktok-live-connector/dist/proto/tiktokSchema.proto b/node_modules/tiktok-live-connector/dist/proto/tiktokSchema.proto
+index 4d9f329..49094e3 100644
+--- a/node_modules/tiktok-live-connector/dist/proto/tiktokSchema.proto
++++ b/node_modules/tiktok-live-connector/dist/proto/tiktokSchema.proto
+@@ -75,6 +75,7 @@ message WebcastGiftMessage {
+   WebcastGiftMessageGiftDetails giftDetails = 15;
+   string monitorExtra = 22;
+   WebcastGiftMessageGiftExtra giftExtra = 23;
++  string receiverUserInGroupLive = 47;
+ }
+ 
+ message WebcastGiftMessageGiftDetails {
+@@ -95,6 +96,11 @@ message WebcastGiftMessageGiftImage {
+   string giftPictureUrl = 1;
+ }
+ 
++//Live Group Message Ingo
++message WebcastGroupLiveMemberNotifyMessage {
++  WebcastMessageEvent event = 1;
++  repeated LiveMember liveMembers = 3; 
++}
+ 
+ // Battle start
+ message WebcastLinkMicBattle {
+@@ -139,6 +145,10 @@ message WebcastLikeMessage {
+   User user = 5;
+   int32 likeCount = 2;
+   int32 totalLikeCount = 3;
++  MemberReceivedLikeDetails memberReceivedLikeDetails = 8;
++  message MemberReceivedLikeDetails {
++    uint64 userId = 1;
++  }
+ }
+ 
+ // New question event
+@@ -161,8 +171,17 @@ message WebcastMessageEvent {
+ message WebcastMessageEventDetails {
+   string displayType = 1;
+   string label = 2;
++  repeated GiftUserDetails giftUserDetails = 4;
++}
++
++message GiftUserDetails {
++  optional UserDetails userDetails = 21;
++  message UserDetails {
++    User user = 1;
++  }
+ }
+ 
++
+ // Source: Co-opted https://github.com/zerodytrash/TikTok-Livestream-Chat-Connector/issues/19#issuecomment-1074150342
+ message WebcastLiveIntroMessage {
+   uint64 id = 2;
+@@ -170,6 +189,35 @@ message WebcastLiveIntroMessage {
+   User user = 5;
+ }
+ 
++message WebcastCompetitionMessage {
++  WebcastMessageEvent event = 1;
++  uint32 status = 3;
++  optional MemberCompetition memberCompetition = 105;
++  message MemberCompetition {
++    repeated MemberCompetitionDetails memberCompetitionDetails = 1;
++  }
++  optional InitCompetition initCompetition = 102;
++  message InitCompetition {
++    MemberInitCompetition memberInitCompetition = 2;
++    message MemberInitCompetition {
++      repeated MemberInitCompetitionDetails memberInitCompetitionDetails = 3;
++      message MemberInitCompetitionDetails {
++        LiveMember competitor = 2;
++      }
++    }
++  }
++  optional EndCompetition endCompetition = 104;
++  message EndCompetition {
++    repeated MemberCompetitionDetails memberCompetitionDetails = 2;
++  }  
++}
++
++message MemberCompetitionDetails {
++  uint64 userId = 1;
++  uint64 score = 3;
++  optional uint32 winningStatus = 4;
++}
++
+ message SystemMessage {
+   string description = 2;
+ }
+@@ -248,6 +296,11 @@ message WebcastSubNotifyMessage {
+ 
+ // ==================================
+ // Generic stuff
++message LiveMember {
++  uint64 userId = 1;
++  string nickname = 3;
++  ProfilePicture profilePicture = 4;
++}
+ 
+ message User {
+   uint64 userId = 1;

@@ -13,72 +13,33 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"  crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.4.1/socket.io.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://unpkg.com/obs-websocket-js"></script>
+
 
     <script src="connection.js"></script>
     <script src="app.js"></script>
 
     <script>
-        function generateOverlay() {
-            let username = $('#uniqueIdInput').val();
-            let url = `/obs.html?username=${username}&showLikes=1&showChats=1&showGifts=1&showFollows=1&showJoins=1&bgColor=rgb(24,23,28)&fontColor=rgb(227,229,235)&fontSize=1.3em`;
+        window.settings = Object.fromEntries(new URLSearchParams(location.search));
+        // window.settings = {username: 'kxg.acespace'}
         
-            if(username) {
-                window.open(url, '_blank');
-            } else {
-                alert("Enter username");
-            }
-        }
         
     </script>
 </head>
 <body>
     <div class="head">
-        <h1>TikTok LIVE Chat Reader</h1>
-        <span class="subTitle">Source: <a href="https://github.com/zerodytrash/TikTok-Chat-Reader">https://github.com/zerodytrash/TikTok-Chat-Reader</a></span>      
-    </div>
-
-    <div>
-        A chat reader for <a href="https://www.tiktok.com/live">TikTok LIVE</a> utilizing <a href="https://github.com/zerodytrash/TikTok-Live-Connector">TikTok-Live-Connector</a> and <a href="https://socket.io/">Socket.IO</a> to forward the data to the client. More Tools available at <a href="https://tikfinity.zerody.one/" target="_blank">TikFinity</a>.
+        <h1>TikTok LIVE Chat Reader</h1>     
     </div>
 
     <div class="inputFields">
         <p>Enter the <b>@username</b> of a user who is currently live:</p>
         <input type="text" id="uniqueIdInput">
         <input type="button" id="connectButton" value="connect">
-        <a href="#" onclick="generateOverlay()">Generate Overlay URL</a>
     </div>
     <table class="splitstatetable">
         <tr>
             <td>
-                <div id="groupmembers">
-                    <!-- <div class="memberContainer">
-                        <div class="memberAvatar">
-                            <img src="./avatar.webp" alt="id">
-                        </div>
-                        <div class="memberInfo">
-                            <div class="memberNickname">Nickname</div>
-                            <div class="memberScore">0</div>
-                        </div>
-                    </div>
-                    <div class="memberContainer">
-                        <div class="memberAvatar">
-                            <img src="./avatar.webp" alt="id">
-                        </div>
-                        <div class="memberInfo">
-                            <div class="memberNickname">Nickname</div>
-                            <div class="memberScore">0</div>
-                        </div>
-                    </div>
-                    <div class="memberContainer">
-                        <div class="memberAvatar">
-                            <img src="./avatar.webp" alt="id">
-                        </div>
-                        <div class="memberInfo">
-                            <div class="memberNickname">Nickname</div>
-                            <div class="memberScore">0</div>
-                        </div>
-                    </div> -->
-                </div>
+                <div id="groupmembers"></div>
             </td>
             <td>
               <div id="pkCompetitor"></div>

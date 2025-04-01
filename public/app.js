@@ -7,17 +7,51 @@ let viewerCount = 0;
 let likeCount = 0;
 let diamondsCount = 0;
 
+let scoreTemp = [];
+var talents =[];
+
+//create obs instance
+const obs = new OBSWebSocket();
+
+
+// Connect to OBS WebSocket function
+async function connectToOBS() {
+  //check if obs is already connected
+  if (obs._socket && obs._socket.readyState === 1) {
+      console.log('Already connected to OBS');
+      return;
+  }
+  try {
+      // Connect to OBS WebSocket
+      await obs.connect(
+          'ws://localhost:4455',
+          ''
+      );
+      console.log('Connected to OBS WebSocket');
+  } catch (error) {
+      console.error('Failed to connect to OBS WebSocket:', error);
+  }
+}
+
 // These settings are defined by obs.html
 if (!window.settings) window.settings = {};
 
 $(document).ready(() => {
-    $('#connectButton').click(connect);
+    $('#connectButton').click(() => {
+      window.settings.username = ''
+      talents = [];
+      console.log('talents',talents);  
+      connect();
+    });
     $('#uniqueIdInput').on('keyup', function (e) {
         if (e.key === 'Enter') {
-            connect();
+          window.settings.username = ''
+          talents = [];
+          console.log('talents',talents);  
+          connect();
         }
     });
-
+    connectToOBS();
     if (window.settings.username) connect();
 })
 
@@ -29,10 +63,13 @@ function connect() {
 
         connection.connect(uniqueId, {
             enableExtendedGiftInfo: true
+            // processInitialData: false,
+            // fetchRoomInfoOnConnect: false
         }).then(state => {
             $('#stateText').text(`Connected to roomId ${state.roomId}`);
 
             // reset stats
+            // talents = [];
             viewerCount = 0;
             likeCount = 0;
             diamondsCount = 0;
@@ -153,104 +190,72 @@ function addGiftItem(data) {
     }, 800);
 }
 
-var talents =[];
-//competition
+// Global variables for the two teams (competitors)
+var team1 = null;
+var team2 = null;
 
-// connection.on('competition', (msg) => {
-//     console.log('Event competition', msg);
+// Global map to track which OBS sources are active
+let obsSourcesActive = {};
+
+// ---------------- OBS MediaInputPlaybackEnded Listener ----------------
+obs.on('MediaInputPlaybackEnded', event => {
+  const inputName = event.inputName;
+  // Process only inputs following the naming format "team{number}_{userId}_skill{1-3}"
+  if (/^team[12]_.+_skill\d+$/.test(inputName)) {
+    console.log(`Media input playback ended for ${inputName}`);
+    // Mark the source as inactive
+    obsSourcesActive[inputName] = false;
+    // Disable the source if not already done
+    setOBSVisibility(inputName, false);
+  }
+});
+
+// Function to trigger the OBS video for a given source name
+async function triggerOBSVideo(sourceName) {
+  // If this source is already active, do nothing.
+  if (obsSourcesActive[sourceName]) {
+    console.log(`Source ${sourceName} is already active.`);
+    return;
+  }
+  obsSourcesActive[sourceName] = true;
   
-//     // When status is 5, initialize the competition UI
-//     if (msg.status === 3) {
-//       // Clear the current PK UI container
-//       $("#pkCompetitor").empty();
-  
-//       // Extract competitor details from the initCompetition object
-//       var details = msg.initCompetition.memberInitCompetition.memberInitCompetitionDetails;
-  
-//       // Check if we have exactly two competitors
-//       if (details && details.length === 2) {
-//         // Extract competitor data from each detail
-//         var competitor1 = details[0].competitor;
-//         var competitor2 = details[1].competitor;
-  
-//         // Build the HTML string for the first competitor
-//         var competitor1HTML = `
-//           <div class="memberContainer" data-userid="${competitor1.userId}">
-//             <div class="memberAvatar">
-//               <img src="${competitor1.profilePicture.urls[0]}" alt="${competitor1.userId}">
-//             </div>
-//             <div class="memberInfo">
-//               <div class="memberNickname">${competitor1.nickname}</div>
-//               <div class="memberScore">0</div>
-//             </div>
-//           </div>`;
-  
-//         // Build the HTML string for the second competitor
-//         var competitor2HTML = `
-//           <div class="memberContainer" data-userid="${competitor2.userId}">
-//             <div class="memberAvatar">
-//               <img src="${competitor2.profilePicture.urls[0]}" alt="${competitor2.userId}">
-//             </div>
-//             <div class="memberInfo">
-//               <div class="memberNickname">${competitor2.nickname}</div>
-//               <div class="memberScore">0</div>
-//             </div>
-//           </div>`;
-  
-//         // Combine the competitor HTML with the PK separator
-//         var newHTML = competitor1HTML + '<h1>PK</h1>' + competitor2HTML;
-  
-//         // Update the pkCompetitor container with the new HTML
-//         $("#pkCompetitor").html(newHTML);
-//       }
-//     }
-    
-//     // When status is 6, update the competition scores
-//     else if (msg.status === 6) {
-//       // Get the competition details from the message object
-//       var details = msg.memberCompetition.memberCompetitionDetails;
-      
-//       // Determine the score for each competitor
-//       var team1Score = details[0].score || "0";
-//       var team2Score = details[1].score || "0";
-      
-//       // Update the HTML elements for each team
-//       $("#pkCompetitor .memberContainer").eq(0).find(".memberScore").text(team1Score);
-//       $("#pkCompetitor .memberContainer").eq(1).find(".memberScore").text(team2Score);
-//     }
-//   });
+  // Enable the source in OBS
+  await setOBSVisibility(sourceName, true);
+}
+
 connection.on('competition', (msg) => {
     console.log('Event competition', msg);
     
     // Helper: initialize PK UI given an array of two competitor objects
   function initPKCompetitor(competitors) {
     if (competitors.length === 2) {
-      var competitor1 = competitors[0];
-      var competitor2 = competitors[1];
+      team1 = competitors[0];
+      team2 = competitors[1];
 
       var competitor1HTML = `
-        <div class="memberContainer" data-userid="${competitor1.userId}">
+        <div class="memberContainer" data-userid="${team1.userId}">
           <div class="memberAvatar">
-            <img src="${competitor1.profilePicture.urls[0]}" alt="${competitor1.userId}">
+            <img src="${team1.profilePicture.urls[0]}" alt="${team1.userId}">
           </div>
           <div class="memberInfo">
-            <div class="memberNickname">${competitor1.nickname}</div>
+            <div class="memberNickname">${team1.nickname}</div>
             <div class="memberScore">0</div>
           </div>
         </div>`;
 
       var competitor2HTML = `
-        <div class="memberContainer" data-userid="${competitor2.userId}">
+        <div class="memberContainer" data-userid="${team2.userId}">
           <div class="memberAvatar">
-            <img src="${competitor2.profilePicture.urls[0]}" alt="${competitor2.userId}">
+            <img src="${team2.profilePicture.urls[0]}" alt="${team2.userId}">
           </div>
           <div class="memberInfo">
-            <div class="memberNickname">${competitor2.nickname}</div>
+            <div class="memberNickname">${team2.nickname}</div>
             <div class="memberScore">0</div>
           </div>
         </div>`;
 
       $("#pkCompetitor").html(competitor1HTML + '<h1>PK</h1>' + competitor2HTML);
+      updateOBSImages(team1,team2); 
     }
   }
 
@@ -288,29 +293,29 @@ connection.on('competition', (msg) => {
       
       // Check if we have exactly two competitors
       if (details && details.length === 2) {
-        var competitor1 = details[0].competitor;
-        var competitor2 = details[1].competitor;
+        team1 = details[0].competitor;
+        team2 = details[1].competitor;
   
         // Build HTML for the first competitor
         var competitor1HTML = `
-          <div class="memberContainer" data-userid="${competitor1.userId}">
+          <div class="memberContainer" data-userid="${team1.userId}">
             <div class="memberAvatar">
-              <img src="${competitor1.profilePicture.urls[0]}" alt="${competitor1.userId}">
+              <img src="${team1.profilePicture.urls[0]}" alt="${team1.userId}">
             </div>
             <div class="memberInfo">
-              <div class="memberNickname">${competitor1.nickname}</div>
+              <div class="memberNickname">${team1.nickname}</div>
               <div class="memberScore">0</div>
             </div>
           </div>`;
   
         // Build HTML for the second competitor
         var competitor2HTML = `
-          <div class="memberContainer" data-userid="${competitor2.userId}">
+          <div class="memberContainer" data-userid="${team2.userId}">
             <div class="memberAvatar">
-              <img src="${competitor2.profilePicture.urls[0]}" alt="${competitor2.userId}">
+              <img src="${team2.profilePicture.urls[0]}" alt="${team2.userId}">
             </div>
             <div class="memberInfo">
-              <div class="memberNickname">${competitor2.nickname}</div>
+              <div class="memberNickname">${team2.nickname}</div>
               <div class="memberScore">0</div>
             </div>
           </div>`;
@@ -320,13 +325,15 @@ connection.on('competition', (msg) => {
   
         // Update the pkCompetitor container with the new HTML
         $("#pkCompetitor").html(newHTML);
+        updateOBSImages(team1,team2); // Call the function to update OBS images
       }
     } 
     // Stage 2: Live score update (Status 6)
     else if (msg.status === 6) {
       // Get the competition details from the message object
       var details = msg.memberCompetition.memberCompetitionDetails;
-      
+      setOBSVisibility('team1', false);
+      setOBSVisibility('team2', false);
       // Determine the score for each competitor
       var team1Score = details[0].score || "0";
       var team2Score = details[1].score || "0";
@@ -370,6 +377,9 @@ connection.on('competition', (msg) => {
         if (score1 === score2) {
           $("#pkCompetitor h1").text("DRAW");
         }
+        team1 = team2 = null; // Reset teams for next competition
+        setOBSVisibility('team1', false);
+        setOBSVisibility('team2', false);
       }
     }
   });
@@ -379,10 +389,15 @@ connection.on('liveMember', (msg) => {
     // console.log('window href:',window.location.href);
     // if(!window.location.href.includes('index.html')) return;
     // console.log('Event LIVE group member', msg);
+    
     talents = msg.liveMembers.map(function(member) {
         member.score = 0; // Default score; adjust logic as needed
         return member;
       });
+    console.log('group member before avatar', talents);
+    // Call the server to save the avatar images and get file paths
+    saveAvatarsAndGetPaths(talents);
+
     console.log('LIVE group member', talents);
     var $groupMembers = $("#groupmembers");
     $groupMembers.empty(); // Clear any existing content
@@ -412,6 +427,69 @@ connection.on('liveMember', (msg) => {
     $groupMembers.append($memberContainer);
   });
 })
+//save avatars and get paths
+function saveAvatarsAndGetPaths(members) {
+  // Prepare the image data to send
+  const imageUrls = members.map(member => ({
+    url: member.profilePicture.urls[0],
+    userId: member.userId
+  }));
+
+  fetch('/saveMemberAvatars', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ imageUrls }),
+  })
+  .then(response => response.json())
+  .then(data => {
+    // Ensure server returns a userId -> avatarFilePath mapping
+    const avatarMap = data.avatarFilePaths;
+
+    // Update each member with the correct avatar path
+    members.forEach(member => {
+      if (avatarMap[member.userId]) {
+        member.avatarFilePath = avatarMap[member.userId];
+      }
+    });
+
+    console.log('Updated members:', members);
+  })
+  .catch(error => {
+    console.error('Error saving avatars:', error);
+  });
+}
+// function saveAvatarsAndGetPaths(members) {
+//   // Create a list of image URLs with their userId to send to the server
+//   // Assuming each member has a profilePicture property with an array of URLs
+//   // and we want to use the first URL for each member
+//   // Extract the URLs from the members array
+//   var imageUrls = members.map(member => ({'url': member.profilePicture.urls[0],
+//                                           'userId': member.userId
+//                                         }));
+
+//   // Make an API call to the server to save images and get file paths
+//   fetch('/saveMemberAvatars', {
+//     method: 'POST',
+//     headers: {
+//       'Content-Type': 'application/json',
+//     },
+//     body: JSON.stringify({ imageUrls: imageUrls }),
+//   })
+//   .then(response => response.json())
+//   .then(data => {
+//     // Assuming the server responds with an array of file paths for the images
+//     data.avatarFilePaths.forEach((filePath, index) => {
+//       // Map the file path to the corresponding member
+//       members[index].avatarFilePath = filePath;
+//     });
+
+//   })
+//   .catch(error => {
+//     console.error('Error saving avatars:', error);
+//   });
+// }
 
 //raw data received
 connection.on('rawData', (messageTypeName, binary) => {
@@ -440,6 +518,7 @@ connection.on('roomUser', (msg) => {
 
 // like stats
 connection.on('like', (msg) => {
+    console.log('Event like', msg);
     if (typeof msg.totalLikeCount === 'number') {
         likeCount = msg.totalLikeCount;
         updateRoomStats();
@@ -455,8 +534,8 @@ connection.on('like', (msg) => {
 // Member join
 let joinMsgDelay = 0;
 connection.on('member', (msg) => {
+    // console.log('Event member', msg);
     if (window.settings.showJoins === "0") return;
-    console.log(msg);
     let addDelay = 250;
     if (joinMsgDelay > 500) addDelay = 100;
     if (joinMsgDelay > 1000) addDelay = 0;
@@ -477,31 +556,242 @@ connection.on('chat', (msg) => {
 })
 
 // Function to update a talent's score and UI
-function updateTalentScore(giftData) {
-    // Find the talent matching the gift's userId
-    let talent = talents.find(t => t.nickname === giftData.receiverUserInGroupLive);
-    if (talent) {
-      // Update the talent's score
-      talent.score += giftData.diamondCount * giftData.repeatCount;
-      
-      // Update the UI for the talent's score
+// function updateTalentScore(giftData) {
+//   // Find the talent matching the gift's userId
+//   let talent = talents.find(t => t.nickname === giftData.receiverUserInGroupLive);
+//   if (talent) {
+//     // Update the talent's score
+//     talent.score += giftData.diamondCount * giftData.repeatCount;
+    
+//     // Update the UI for the talent's score
+//     $('#groupmembers .memberContainer[data-userid="' + talent.userId + '"] .memberScore')
+//       .text(talent.score);
+//   }
+// }
+/**
+ * Updates the talent's score based on the gift data.
+ * @param {Object} giftData - The received gift data.
+ * @param {number} calculatedScore - The adjusted score after handling streaks.
+ */
+function updateTalentScore(giftData, calculatedScore) {
+  let talent = talents.find(t => t.nickname === giftData.receiverUserInGroupLive);
+  
+  if (talent) {
+      // Update the talent's score with the calculated value
+      talent.score += calculatedScore;
+
+      // Update the UI with the new score
       $('#groupmembers .memberContainer[data-userid="' + talent.userId + '"] .memberScore')
-        .text(talent.score);
-    }
+          .text(talent.score);
+  }
+}
+//  var initCompetitionData = {
+//   "status": 3,
+//   "initCompetition": {
+//       "memberInitCompetition": {
+//           "memberInitCompetitionDetails": [
+//               {
+//                   "competitor": {
+//                       "userId": "6894179049950725122",
+//                       "nickname": "TOM 🔥 XV",
+//                       "profilePicture": {
+//                           "urls": [
+//                               "https://p16-sign-sg.tiktokcdn.com/tos-alisg-avt-0068/49983708ea952fe1c9160d148c1ce947~tplv-tiktokx-cropcenter:100:100.webp?dr=14579&refresh_token=fa3657d4&x-expires=1743656400&x-signature=CoNGldt1%2BpRoxqLXr%2FNRWc0OHkE%3D&t=4d5b0474&ps=13740610&shp=a5d48078&shcp=d2876c74&idc=maliva",
+//                               "https://p9-sign-sg.tiktokcdn.com/tos-alisg-avt-0068/49983708ea952fe1c9160d148c1ce947~tplv-tiktokx-cropcenter:100:100.webp?dr=14579&refresh_token=5561f59c&x-expires=1743656400&x-signature=y5%2B9F1eLck%2B0LaHF8eqIPaBrA5k%3D&t=4d5b0474&ps=13740610&shp=a5d48078&shcp=d2876c74&idc=maliva",
+//                               "https://p16-sign-sg.tiktokcdn.com/tos-alisg-avt-0068/49983708ea952fe1c9160d148c1ce947~tplv-tiktokx-cropcenter:100:100.jpeg?dr=14579&refresh_token=e1cfc8b8&x-expires=1743656400&x-signature=%2B8%2B6f9n%2F4bGF9XvOOh8QjR5Qa2Y%3D&t=4d5b0474&ps=13740610&shp=a5d48078&shcp=d2876c74&idc=maliva"
+//                           ]
+//                       }
+//                   }
+//               },
+//               {
+//                   "competitor": {
+//                       "userId": "6534659076852187138",
+//                       "nickname": "Kalila 🔥 XV",
+//                       "profilePicture": {
+//                           "urls": [
+//                               "https://p16-sign-sg.tiktokcdn.com/tos-alisg-avt-0068/a1cee8fc5103a7572754aef552a42a44~tplv-tiktokx-cropcenter:100:100.webp?dr=14579&refresh_token=451f0ad3&x-expires=1743656400&x-signature=J9BUREXWEm0%2B2D9lD4Y2mfoTI64%3D&t=4d5b0474&ps=13740610&shp=a5d48078&shcp=d2876c74&idc=maliva",
+//                               "https://p9-sign-sg.tiktokcdn.com/tos-alisg-avt-0068/a1cee8fc5103a7572754aef552a42a44~tplv-tiktokx-cropcenter:100:100.webp?dr=14579&refresh_token=d6ca6b04&x-expires=1743656400&x-signature=fM9vD10OLKo3pxFnKHNDqf1VggY%3D&t=4d5b0474&ps=13740610&shp=a5d48078&shcp=d2876c74&idc=maliva",
+//                               "https://p16-sign-sg.tiktokcdn.com/tos-alisg-avt-0068/a1cee8fc5103a7572754aef552a42a44~tplv-tiktokx-cropcenter:100:100.jpeg?dr=14579&refresh_token=751df719&x-expires=1743656400&x-signature=h1F%2FDGAVZM5F0Pb%2Fxu5%2BmqjCSkY%3D&t=4d5b0474&ps=13740610&shp=a5d48078&shcp=d2876c74&idc=maliva"
+//                           ]
+//                       }
+//                   }
+//               }
+//           ]
+//       }
+//   },
+//   "msgId": "7488204987466615558",
+//   "createTime": "1743485272615"
+// }
+// New gift received
+// connection.on('gift', (data) => {
+//     if (!isPendingStreak(data) && data.diamondCount > 0) {
+//         diamondsCount += (data.diamondCount * data.repeatCount);
+//         updateRoomStats();
+//         updateTalentScore(data); // Update the talent score
+//     }
+
+//     if (window.settings.showGifts === "0") return;
+
+//     addGiftItem(data);
+// })
+
+connection.on('gift', (data) => {
+  if (data.diamondCount > 0) {
+      // Track ongoing streaks and calculate the correct score
+      let score = data.diamondCount * data.repeatCount;
+
+      if (data.groupId !== 0 && data.giftType === 1) {
+          const groupId = data.groupId;
+
+          // Find existing entry and subtract previous cost
+          const existingEntry = scoreTemp.find(i => i.groupId === groupId);
+          if (existingEntry) {
+              score -= existingEntry.cost;
+              scoreTemp = scoreTemp.filter(i => i.groupId !== groupId);
+          }
+
+          // If the streak is ongoing, store it
+          if (!data.repeatEnd) {
+              scoreTemp.push({ groupId, cost: data.diamondCount * data.repeatCount });
+          }
+      }
+
+      // Update room stats and talent scores
+      diamondsCount += score;
+      updateRoomStats();
+      updateTalentScore(data, score);
+
+      // if (data.diamondCount < 10) {
+        // updateOBSImages();
+      // }
   }
 
-// New gift received
-connection.on('gift', (data) => {
-    if (!isPendingStreak(data) && data.diamondCount > 0) {
-        diamondsCount += (data.diamondCount * data.repeatCount);
-        updateRoomStats();
-        updateTalentScore(data); // Update the talent score
+  if (window.settings.showGifts === "0") return;
+  addGiftItem(data);
+
+  // --- Trigger OBS video for the correct team in gift event ---
+  if (team1 && team2 && data.receiverUserDetails) {
+    let targetTeam = null;
+    if (String(data.receiverUserDetails.userId) === String(team1.userId)) {
+      targetTeam = { teamNumber: 1, userId: team1.userId };
+    } else if (String(data.receiverUserDetails.userId) === String(team2.userId)) {
+      targetTeam = { teamNumber: 2, userId: team2.userId };
     }
+    
+    if (targetTeam) {
+      // Determine the skill level based on diamondCount
+      let skill = "";
+      if (data.diamondCount >= 1 && data.diamondCount <= 98) {
+        skill = "skill1";
+      } else if (data.diamondCount >= 99 && data.diamondCount <= 4999) {
+        skill = "skill2";
+      } else if (data.diamondCount >= 5000) {
+        skill = "skill3";
+      }
+      
+      // Construct the OBS source name accordingly.
+      const sourceName = `team${targetTeam.teamNumber}_${targetTeam.userId}_${skill}`;
+      
+      // Trigger OBS video source; now we rely on MediaInputPlaybackEnded
+      triggerOBSVideo(sourceName);
+    }
+  }
+});
 
-    if (window.settings.showGifts === "0") return;
+// function updateOBSImages() {
+//   const team1 = initCompetitionData.initCompetition.memberInitCompetition.memberInitCompetitionDetails[0].competitor;
+//   const team2 = initCompetitionData.initCompetition.memberInitCompetition.memberInitCompetitionDetails[1].competitor;
 
-    addGiftItem(data);
-})
+//   // Select the highest quality image URL
+//   const team1Image = team1.profilePicture.urls[0];
+//   const team2Image = team2.profilePicture.urls[0];
+
+//   // Update OBS image sources and make them visible
+//   updateOBSImageSource('team1', team1Image);
+//   updateOBSImageSource('team2', team2Image);
+
+//   // Make both images visible
+//   setOBSVisibility('team1', true);
+//   setOBSVisibility('team2', true);
+// }
+
+function updateOBSImages(competitor1,competitor2) {
+  //debug with consolelog
+
+  console.log('team1 userId:', JSON.stringify(competitor1.userId));
+  console.log('talents userIds:', talents.map(t => JSON.stringify(t.userId)));
+  console.log('team2 userId:', JSON.stringify(competitor2.userId));
+  console.log('talents userIds:', talents.map(t => JSON.stringify(t.userId)));
+  //find the matching talent in the talents array with the same userId with team1 and team 2 then get the avatarFilePath
+  const team1Talent = talents.find(t => String(t.userId) === String(competitor1.userId));
+  const team2Talent = talents.find(t => String(t.userId) === String(competitor2.userId));
+  console.log('team1Talent', team1Talent);
+  console.log('team2Talent', team2Talent);
+  if (!team1Talent || !team2Talent) {
+    console.error('Talent not found for one or both competitors');
+    return;
+  }
+
+  // Use the avatarFilePath property from the talent object
+  
+  // Create a map from talents array for fast lookup by userId
+  // const talentsMap = talents.reduce((acc, talent) => {
+  //   acc[talent.userId] = talent.avatarFilePath; // Using the avatarFilePath property here
+  //   return acc;
+  // }, {});
+
+  // Retrieve the avatar file paths based on userId
+  const team1AvatarPath = team1Talent.avatarFilePath;
+  const team2AvatarPath = team2Talent.avatarFilePath;
+
+  // Check if avatar file paths are valid
+  if (!team1AvatarPath || !team2AvatarPath) {
+    console.error('Avatar file paths not found for one or both competitors');
+    return;
+  }
+
+  // Update OBS image sources with file paths and make them visible
+  updateOBSImageSource('team1', team1AvatarPath);
+  updateOBSImageSource('team2', team2AvatarPath);
+
+  // Make both images visible
+  setOBSVisibility('team1', true);
+  setOBSVisibility('team2', true);
+}
+
+/**
+* Call a WebSocket request to OBS to update an image source.
+* @param {string} sourceName - The name of the OBS source to update.
+* @param {string} imageUrl - The new image URL.
+*/
+async function updateOBSImageSource(sourceName, imageUrl) {
+  await obs.call('SetInputSettings', {
+    inputName: sourceName,
+    inputSettings: { file: imageUrl }
+  }).catch(err => console.error(`Failed to update ${sourceName}:`, err));
+}
+const sceneName = 'tyht'
+/**
+* Makes an OBS source visible or hidden.
+* @param {string} sourceName - The name of the OBS source.
+* @param {boolean} visible - Whether to show or hide the source.
+*/
+
+async function setOBSVisibility(sourceName, visible) {
+  const { sceneItems } = await obs.call('GetSceneItemList', { sceneName });
+  const sceneItem = sceneItems.find(item => item.sourceName === sourceName);
+
+  if (sceneItem) {
+    await obs.call('SetSceneItemEnabled', {
+      sceneName,
+      sceneItemId: sceneItem.sceneItemId,
+      sceneItemEnabled: visible
+    });
+    console.log(`${visible ? 'Activated' : 'Deactivated'} source: ${sourceName}`);
+  } else {
+    console.warn(`Source "${sourceName}" not found in scene "${sceneName}"`);
+  }
+}
 
 // share, follow
 connection.on('social', (data) => {

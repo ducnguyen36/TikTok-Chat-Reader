@@ -2,7 +2,14 @@
   "dependencies": {
     "dotenv": "^16.0.0",
     "express": "^4.17.2",
+    "obs-websocket-js": "^5.0.6",
+    "patch-package": "^8.0.0",
+    "proxy-agent": "^6.5.0",
+    "request": "^2.88.2",
     "socket.io": "^4.4.1",
     "tiktok-live-connector": "^1.2.3"
+  },
+  "scripts": {
+    "postinstall": "patch-package"
   }
 }

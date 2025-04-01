@@ -1,0 +1,595 @@
+{
+   "giftWithMemberReceivedRepeatEndFalse": {
+      "giftId": 5655,
+      "repeatCount": 1,
+      "groupId": "1743453145522",
+      "receiverUserInGroupLive": "iamHwa🌹",
+      "userId": "7150967192333583386",
+      "secUid": "MS4wLjABAAAA0YU9tW3tGFcJu0r4J1mc2qH8HjQ8VCuA19TEYs83WatodM-rt1ghfdD8zmhoSlf4",
+      "uniqueId": "dammedongot",
+      "nickname": "Shin Cyme",
+      "profilePictureUrl": "https://p16-sign-sg.tiktokcdn.com/tos-alisg-avt-0068/6a92a1573f599e6bb88574a09d8b0d8f~tplv-tiktokx-cropcenter:100:100.webp?dr=14579&refresh_token=035b3b2c&x-expires=1743624000&x-signature=CiH4Ed4USIOg1CNWiqdr0nLAWyw%3D&t=4d5b0474&ps=13740610&shp=a5d48078&shcp=fdd36af4&idc=my2",
+      "followRole": 0,
+      "userBadges": [
+          {
+              "type": "privilege",
+              "privilegeId": "7138381747292493604",
+              "level": 12,
+              "badgeSceneType": 8
+          }
+      ],
+      "userSceneTypes": [
+          8
+      ],
+      "userDetails": {
+          "createTime": "0",
+          "bioDescription": "",
+          "profilePictureUrls": [
+              "https://p16-sign-sg.tiktokcdn.com/tos-alisg-avt-0068/6a92a1573f599e6bb88574a09d8b0d8f~tplv-tiktokx-cropcenter:100:100.webp?dr=14579&refresh_token=035b3b2c&x-expires=1743624000&x-signature=CiH4Ed4USIOg1CNWiqdr0nLAWyw%3D&t=4d5b0474&ps=13740610&shp=a5d48078&shcp=fdd36af4&idc=my2",
+              "https://p9-sign-sg.tiktokcdn.com/tos-alisg-avt-0068/6a92a1573f599e6bb88574a09d8b0d8f~tplv-tiktokx-cropcenter:100:100.webp?dr=14579&refresh_token=3866d3ec&x-expires=1743624000&x-signature=%2F%2F1uMSyGlr3%2BylQmgA4lN6hP8ok%3D&t=4d5b0474&ps=13740610&shp=a5d48078&shcp=fdd36af4&idc=my2",
+              "https://p16-sign-sg.tiktokcdn.com/tos-alisg-avt-0068/6a92a1573f599e6bb88574a09d8b0d8f~tplv-tiktokx-cropcenter:100:100.jpeg?dr=14579&refresh_token=ac1b35db&x-expires=1743624000&x-signature=u%2B7KajLY%2FCZI9zL5LltcRwsM8vM%3D&t=4d5b0474&ps=13740610&shp=a5d48078&shcp=fdd36af4&idc=my2"
+          ]
+      },
+      "followInfo": {
+          "followingCount": 138,
+          "followerCount": 97,
+          "followStatus": 0,
+          "pushStatus": 0
+      },
+      "isModerator": false,
+      "isNewGifter": false,
+      "isSubscriber": false,
+      "topGifterRank": null,
+      "gifterLevel": 12,
+      "teamMemberLevel": 0,
+      "msgId": "7488073804833688340",
+      "createTime": "1743453145783",
+      "displayType": "ttlive_groupLive_liveChat_giftingMessage",
+      "label": "{0:user} sent for {1:user}: {3:gift} x{2}",
+      "receiverUserDetails": {
+          "userId": "6538597471839584258",
+          "secUid": "MS4wLjABAAAAEpXVgdcylwtr28-ueO8KvONmxs9pJJl4ardecs571TJn-E9onhr7P-zLG-jSgzDs",
+          "uniqueId": "hwaa_ie",
+          "nickname": "iamHwa🌹",
+          "profilePictureUrl": "https://p16-sign-sg.tiktokcdn.com/tos-alisg-avt-0068/7dc86632ad91313ffe6d7f1f5e8f1294~tplv-tiktokx-cropcenter:100:100.webp?dr=14579&refresh_token=c5f4e47f&x-expires=1743624000&x-signature=e9yjNCGvwiVqcSLAgXCmo7QtKUc%3D&t=4d5b0474&ps=13740610&shp=a5d48078&shcp=fdd36af4&idc=my2",
+          "followRole": 0,
+          "userBadges": [],
+          "userSceneTypes": [],
+          "userDetails": {
+              "createTime": "0",
+              "bioDescription": "",
+              "profilePictureUrls": [
+                  "https://p16-sign-sg.tiktokcdn.com/tos-alisg-avt-0068/7dc86632ad91313ffe6d7f1f5e8f1294~tplv-tiktokx-cropcenter:100:100.webp?dr=14579&refresh_token=c5f4e47f&x-expires=1743624000&x-signature=e9yjNCGvwiVqcSLAgXCmo7QtKUc%3D&t=4d5b0474&ps=13740610&shp=a5d48078&shcp=fdd36af4&idc=my2",
+                  "https://p9-sign-sg.tiktokcdn.com/tos-alisg-avt-0068/7dc86632ad91313ffe6d7f1f5e8f1294~tplv-tiktokx-cropcenter:100:100.webp?dr=14579&refresh_token=5bae8305&x-expires=1743624000&x-signature=fNwDkhq0oPM3mzt3oV893y2r4eo%3D&t=4d5b0474&ps=13740610&shp=a5d48078&shcp=fdd36af4&idc=my2",
+                  "https://p16-sign-sg.tiktokcdn.com/tos-alisg-avt-0068/7dc86632ad91313ffe6d7f1f5e8f1294~tplv-tiktokx-cropcenter:100:100.jpeg?dr=14579&refresh_token=21db034c&x-expires=1743624000&x-signature=n3Rsen7OwaTppGW7AU7Z%2FEq%2BtoU%3D&t=4d5b0474&ps=13740610&shp=a5d48078&shcp=fdd36af4&idc=my2"
+              ]
+          },
+          "followInfo": {
+              "followingCount": 478,
+              "followerCount": 412,
+              "followStatus": 0,
+              "pushStatus": 0
+          },
+          "isModerator": false,
+          "isNewGifter": false,
+          "isSubscriber": false,
+          "topGifterRank": null,
+          "gifterLevel": 0,
+          "teamMemberLevel": 0
+      },
+      "repeatEnd": false,
+      "gift": {
+          "gift_id": 5655,
+          "repeat_count": 1,
+          "repeat_end": 0,
+          "gift_type": 1
+      },
+      "describe": "Sent Rose",
+      "giftType": 1,
+      "diamondCount": 1,
+      "giftName": "Rose",
+      "giftPictureUrl": "https://p19-webcast.tiktokcdn.com/img/maliva/webcast-va/eba3a9bb85c33e017f3648eaf88d7189~tplv-obj.png",
+      "timestamp": 1743453145864,
+      "receiverUserId": "7472274164629685264",
+      "extendedGiftInfo": {
+          "batch_gift_info": {
+              "available_counts": [
+                  5,
+                  20,
+                  50,
+                  100
+              ],
+              "can_batch_send": true
+          },
+          "can_put_in_gift_box": false,
+          "color_infos": [],
+          "combo": true,
+          "describe": "sent Rose",
+          "diamond_count": 1,
+          "disable_gallery_banner": false,
+          "duration": 1000,
+          "expiration_timestamp": 0,
+          "for_linkmic": true,
+          "gift_label_type": 0,
+          "gift_rank_recommend_info": "",
+          "gift_skin_to_gift_texts_infos": [],
+          "gift_skins": [],
+          "gift_sub_type": 0,
+          "gift_texts": [],
+          "gift_vertical_scenarios": [
+              0,
+              12
+          ],
+          "gold_effect": "",
+          "group_in_tab": 0,
+          "icon": {
+              "avg_color": "#E0BCBC",
+              "height": 0,
+              "image_type": 0,
+              "is_animated": false,
+              "open_web_url": "",
+              "uri": "webcast-va/eba3a9bb85c33e017f3648eaf88d7189",
+              "url_list": [
+                  "https://p16-webcast.tiktokcdn.com/img/maliva/webcast-va/eba3a9bb85c33e017f3648eaf88d7189~tplv-obj.webp",
+                  "https://p19-webcast.tiktokcdn.com/img/maliva/webcast-va/eba3a9bb85c33e017f3648eaf88d7189~tplv-obj.webp"
+              ],
+              "width": 0
+          },
+          "id": 5655,
+          "image": {
+              "avg_color": "#CEE5EB",
+              "height": 0,
+              "image_type": 0,
+              "is_animated": false,
+              "open_web_url": "",
+              "uri": "webcast-va/eba3a9bb85c33e017f3648eaf88d7189",
+              "url_list": [
+                  "https://p16-webcast.tiktokcdn.com/img/maliva/webcast-va/eba3a9bb85c33e017f3648eaf88d7189~tplv-obj.webp",
+                  "https://p19-webcast.tiktokcdn.com/img/maliva/webcast-va/eba3a9bb85c33e017f3648eaf88d7189~tplv-obj.webp"
+              ],
+              "width": 0
+          },
+          "is_box_gift": false,
+          "is_broadcast_gift": false,
+          "is_displayed_on_panel": true,
+          "is_effect_befview": false,
+          "is_gallery_gift": false,
+          "is_global_gift": true,
+          "is_random_gift": false,
+          "lock_info": {
+              "gift_level": 0,
+              "highlight_enabled": false,
+              "lock": false,
+              "lock_type": 0,
+              "unlock_button_text": "",
+              "unlock_schema": ""
+          },
+          "name": "Rose",
+          "primary_effect_id": 0,
+          "tracker_params": {},
+          "type": 1
+      }
+  },
+   "giftWithMemberReceivedRepeatEndTrue": {
+      "giftId": 5655,
+      "repeatCount": 1,
+      "repeatEnd": true,
+      "groupId": "1743453145522",
+      "receiverUserInGroupLive": "iamHwa🌹",
+      "userId": "7150967192333583386",
+      "secUid": "MS4wLjABAAAA0YU9tW3tGFcJu0r4J1mc2qH8HjQ8VCuA19TEYs83WatodM-rt1ghfdD8zmhoSlf4",
+      "uniqueId": "dammedongot",
+      "nickname": "Shin Cyme",
+      "profilePictureUrl": "https://p16-sign-sg.tiktokcdn.com/tos-alisg-avt-0068/6a92a1573f599e6bb88574a09d8b0d8f~tplv-tiktokx-cropcenter:100:100.webp?dr=14579&refresh_token=035b3b2c&x-expires=1743624000&x-signature=CiH4Ed4USIOg1CNWiqdr0nLAWyw%3D&t=4d5b0474&ps=13740610&shp=a5d48078&shcp=fdd36af4&idc=my",
+      "followRole": 0,
+      "userBadges": [
+          {
+              "type": "privilege",
+              "privilegeId": "7138381747292493604",
+              "level": 12,
+              "badgeSceneType": 8
+          }
+      ],
+      "userSceneTypes": [
+          8
+      ],
+      "userDetails": {
+          "createTime": "0",
+          "bioDescription": "",
+          "profilePictureUrls": [
+              "https://p16-sign-sg.tiktokcdn.com/tos-alisg-avt-0068/6a92a1573f599e6bb88574a09d8b0d8f~tplv-tiktokx-cropcenter:100:100.webp?dr=14579&refresh_token=035b3b2c&x-expires=1743624000&x-signature=CiH4Ed4USIOg1CNWiqdr0nLAWyw%3D&t=4d5b0474&ps=13740610&shp=a5d48078&shcp=fdd36af4&idc=my",
+              "https://p9-sign-sg.tiktokcdn.com/tos-alisg-avt-0068/6a92a1573f599e6bb88574a09d8b0d8f~tplv-tiktokx-cropcenter:100:100.webp?dr=14579&refresh_token=3866d3ec&x-expires=1743624000&x-signature=%2F%2F1uMSyGlr3%2BylQmgA4lN6hP8ok%3D&t=4d5b0474&ps=13740610&shp=a5d48078&shcp=fdd36af4&idc=my",
+              "https://p16-sign-sg.tiktokcdn.com/tos-alisg-avt-0068/6a92a1573f599e6bb88574a09d8b0d8f~tplv-tiktokx-cropcenter:100:100.jpeg?dr=14579&refresh_token=ac1b35db&x-expires=1743624000&x-signature=u%2B7KajLY%2FCZI9zL5LltcRwsM8vM%3D&t=4d5b0474&ps=13740610&shp=a5d48078&shcp=fdd36af4&idc=my"
+          ]
+      },
+      "followInfo": {
+          "followingCount": 138,
+          "followerCount": 97,
+          "followStatus": 0,
+          "pushStatus": 0
+      },
+      "isModerator": false,
+      "isNewGifter": false,
+      "isSubscriber": false,
+      "topGifterRank": null,
+      "gifterLevel": 12,
+      "teamMemberLevel": 0,
+      "msgId": "7488073866462644999",
+      "createTime": "1743453149029",
+      "displayType": "ttlive_groupLive_liveChat_giftingMessage",
+      "label": "{0:user} sent for {1:user}: {3:gift} x{2}",
+      "receiverUserDetails": {
+          "userId": "6538597471839584258",
+          "secUid": "MS4wLjABAAAAEpXVgdcylwtr28-ueO8KvONmxs9pJJl4ardecs571TJn-E9onhr7P-zLG-jSgzDs",
+          "uniqueId": "hwaa_ie",
+          "nickname": "iamHwa🌹",
+          "profilePictureUrl": "https://p16-sign-sg.tiktokcdn.com/tos-alisg-avt-0068/7dc86632ad91313ffe6d7f1f5e8f1294~tplv-tiktokx-cropcenter:100:100.webp?dr=14579&refresh_token=c5f4e47f&x-expires=1743624000&x-signature=e9yjNCGvwiVqcSLAgXCmo7QtKUc%3D&t=4d5b0474&ps=13740610&shp=a5d48078&shcp=fdd36af4&idc=my",
+          "followRole": 0,
+          "userBadges": [],
+          "userSceneTypes": [],
+          "userDetails": {
+              "createTime": "0",
+              "bioDescription": "",
+              "profilePictureUrls": [
+                  "https://p16-sign-sg.tiktokcdn.com/tos-alisg-avt-0068/7dc86632ad91313ffe6d7f1f5e8f1294~tplv-tiktokx-cropcenter:100:100.webp?dr=14579&refresh_token=c5f4e47f&x-expires=1743624000&x-signature=e9yjNCGvwiVqcSLAgXCmo7QtKUc%3D&t=4d5b0474&ps=13740610&shp=a5d48078&shcp=fdd36af4&idc=my",
+                  "https://p9-sign-sg.tiktokcdn.com/tos-alisg-avt-0068/7dc86632ad91313ffe6d7f1f5e8f1294~tplv-tiktokx-cropcenter:100:100.webp?dr=14579&refresh_token=5bae8305&x-expires=1743624000&x-signature=fNwDkhq0oPM3mzt3oV893y2r4eo%3D&t=4d5b0474&ps=13740610&shp=a5d48078&shcp=fdd36af4&idc=my",
+                  "https://p16-sign-sg.tiktokcdn.com/tos-alisg-avt-0068/7dc86632ad91313ffe6d7f1f5e8f1294~tplv-tiktokx-cropcenter:100:100.jpeg?dr=14579&refresh_token=21db034c&x-expires=1743624000&x-signature=n3Rsen7OwaTppGW7AU7Z%2FEq%2BtoU%3D&t=4d5b0474&ps=13740610&shp=a5d48078&shcp=fdd36af4&idc=my"
+              ]
+          },
+          "followInfo": {
+              "followingCount": 478,
+              "followerCount": 412,
+              "followStatus": 0,
+              "pushStatus": 0
+          },
+          "isModerator": false,
+          "isNewGifter": false,
+          "isSubscriber": false,
+          "topGifterRank": null,
+          "gifterLevel": 0,
+          "teamMemberLevel": 0
+      },
+      "gift": {
+          "gift_id": 5655,
+          "repeat_count": 1,
+          "repeat_end": 1,
+          "gift_type": 1
+      },
+      "describe": "Sent Rose",
+      "giftType": 1,
+      "diamondCount": 1,
+      "giftName": "Rose",
+      "giftPictureUrl": "https://p19-webcast.tiktokcdn.com/img/maliva/webcast-va/eba3a9bb85c33e017f3648eaf88d7189~tplv-obj.png",
+      "timestamp": 1743453149029,
+      "receiverUserId": "7472274164629685264",
+      "extendedGiftInfo": {
+          "batch_gift_info": {
+              "available_counts": [
+                  5,
+                  20,
+                  50,
+                  100
+              ],
+              "can_batch_send": true
+          },
+          "can_put_in_gift_box": false,
+          "color_infos": [],
+          "combo": true,
+          "describe": "sent Rose",
+          "diamond_count": 1,
+          "disable_gallery_banner": false,
+          "duration": 1000,
+          "expiration_timestamp": 0,
+          "for_linkmic": true,
+          "gift_label_type": 0,
+          "gift_rank_recommend_info": "",
+          "gift_skin_to_gift_texts_infos": [],
+          "gift_skins": [],
+          "gift_sub_type": 0,
+          "gift_texts": [],
+          "gift_vertical_scenarios": [
+              0,
+              12
+          ],
+          "gold_effect": "",
+          "group_in_tab": 0,
+          "icon": {
+              "avg_color": "#E0BCBC",
+              "height": 0,
+              "image_type": 0,
+              "is_animated": false,
+              "open_web_url": "",
+              "uri": "webcast-va/eba3a9bb85c33e017f3648eaf88d7189",
+              "url_list": [
+                  "https://p16-webcast.tiktokcdn.com/img/maliva/webcast-va/eba3a9bb85c33e017f3648eaf88d7189~tplv-obj.webp",
+                  "https://p19-webcast.tiktokcdn.com/img/maliva/webcast-va/eba3a9bb85c33e017f3648eaf88d7189~tplv-obj.webp"
+              ],
+              "width": 0
+          },
+          "id": 5655,
+          "image": {
+              "avg_color": "#CEE5EB",
+              "height": 0,
+              "image_type": 0,
+              "is_animated": false,
+              "open_web_url": "",
+              "uri": "webcast-va/eba3a9bb85c33e017f3648eaf88d7189",
+              "url_list": [
+                  "https://p16-webcast.tiktokcdn.com/img/maliva/webcast-va/eba3a9bb85c33e017f3648eaf88d7189~tplv-obj.webp",
+                  "https://p19-webcast.tiktokcdn.com/img/maliva/webcast-va/eba3a9bb85c33e017f3648eaf88d7189~tplv-obj.webp"
+              ],
+              "width": 0
+          },
+          "is_box_gift": false,
+          "is_broadcast_gift": false,
+          "is_displayed_on_panel": true,
+          "is_effect_befview": false,
+          "is_gallery_gift": false,
+          "is_global_gift": true,
+          "is_random_gift": false,
+          "lock_info": {
+              "gift_level": 0,
+              "highlight_enabled": false,
+              "lock": false,
+              "lock_type": 0,
+              "unlock_button_text": "",
+              "unlock_schema": ""
+          },
+          "name": "Rose",
+          "primary_effect_id": 0,
+          "tracker_params": {},
+          "type": 1
+      }
+  },
+  "giftWithNoMember": {
+      "giftId": 7934,
+      "repeatCount": 1,
+      "userId": "6790017469546349573",
+      "secUid": "MS4wLjABAAAASB__hzqVNeMPyoZaj_-83caP8Nqi9DzgDx-OHp2hKsNnYCkCFQXLRi7Pla1bXKcu",
+      "uniqueId": "victorrojaas007",
+      "nickname": "🍃NARUTO🌀Uzumaki🍃 3/25 1🎂🍰",
+      "profilePictureUrl": "https://p19-pu-sign-useast8.tiktokcdn-us.com/tos-useast8-avt-0068-tx2/e9fc181c2a36048f35aeedf5fc85f0bb~tplv-tiktokx-cropcenter:100:100.webp?dr=9640&refresh_token=c45a5d1f&x-expires=1743624000&x-signature=a0xu1ltvE7R2dS%2Bj3D%2BLjgX0DWs%3D&t=4d5b0474&ps=13740610&shp=a5d48078&shcp=fdd36af4&idc=useast8",
+      "followRole": 0,
+      "userBadges": [
+         {
+            "type": "privilege",
+            "privilegeId": "7138382115757954852",
+            "level": 35,
+            "badgeSceneType": 8
+         },
+         {
+            "type": "privilege",
+            "privilegeId": "7196929090442529541",
+            "level": 11,
+            "badgeSceneType": 10
+         }
+      ],
+      "userSceneTypes": [
+         8,
+         10
+      ],
+      "userDetails": {
+         "createTime": "0",
+         "bioDescription": "",
+         "profilePictureUrls": [
+            "https://p19-pu-sign-useast8.tiktokcdn-us.com/tos-useast8-avt-0068-tx2/e9fc181c2a36048f35aeedf5fc85f0bb~tplv-tiktokx-cropcenter:100:100.webp?dr=9640&refresh_token=c45a5d1f&x-expires=1743624000&x-signature=a0xu1ltvE7R2dS%2Bj3D%2BLjgX0DWs%3D&t=4d5b0474&ps=13740610&shp=a5d48078&shcp=fdd36af4&idc=useast8",
+            "https://p16-pu-sign-useast8.tiktokcdn-us.com/tos-useast8-avt-0068-tx2/e9fc181c2a36048f35aeedf5fc85f0bb~tplv-tiktokx-cropcenter:100:100.webp?dr=9640&refresh_token=e1956ac6&x-expires=1743624000&x-signature=EUX2CBNNVVDMQmWCF0WG49qoYBU%3D&t=4d5b0474&ps=13740610&shp=a5d48078&shcp=fdd36af4&idc=useast8",
+            "https://p19-pu-sign-useast8.tiktokcdn-us.com/tos-useast8-avt-0068-tx2/e9fc181c2a36048f35aeedf5fc85f0bb~tplv-tiktokx-cropcenter:100:100.jpeg?dr=9640&refresh_token=0839de78&x-expires=1743624000&x-signature=pnyF4y18l%2FLiE9mmPu67CpOexDw%3D&t=4d5b0474&ps=13740610&shp=a5d48078&shcp=fdd36af4&idc=useast8"
+         ]
+      },
+      "followInfo": {
+         "followingCount": 7210,
+         "followerCount": 1576,
+         "followStatus": 0,
+         "pushStatus": 0
+      },
+      "isModerator": false,
+      "isNewGifter": false,
+      "isSubscriber": false,
+      "topGifterRank": null,
+      "gifterLevel": 35,
+      "teamMemberLevel": 11,
+      "msgId": "7488074595816704798",
+      "createTime": "1743453280493",
+      "displayType": "webcast_aweme_gift_send_messageNew",
+      "label": "{0:user} sent {1:gift} × {2:string}",
+      "repeatEnd": false,
+      "gift": {
+         "gift_id": 7934,
+         "repeat_count": 1,
+         "repeat_end": 0,
+         "gift_type": 4
+      },
+      "describe": "Sent Heart Me",
+      "giftType": 4,
+      "diamondCount": 1,
+      "giftName": "Heart Me",
+      "giftPictureUrl": "https://p19-webcast.tiktokcdn.com/img/maliva/webcast-va/d56945782445b0b8c8658ed44f894c7b~tplv-obj.png",
+      "timestamp": 1743453280495,
+      "receiverUserId": "7472274164629685264",
+      "groupId": "0",
+      "extendedGiftInfo": {
+         "can_put_in_gift_box": false,
+         "color_infos": [],
+         "combo": false,
+         "describe": "sent Heart Me",
+         "diamond_count": 1,
+         "disable_gallery_banner": false,
+         "duration": 3000,
+         "expiration_timestamp": 0,
+         "for_linkmic": false,
+         "gift_label_icon": {
+            "avg_color": "#7C9BA3",
+            "height": 0,
+            "image_type": 0,
+            "is_animated": false,
+            "open_web_url": "",
+            "uri": "webcast-va/6415678665a355a01e2765ea159c2426",
+            "url_list": [
+                  "https://p16-webcast.tiktokcdn.com/img/maliva/webcast-va/6415678665a355a01e2765ea159c2426~tplv-obj.webp",
+                  "https://p19-webcast.tiktokcdn.com/img/maliva/webcast-va/6415678665a355a01e2765ea159c2426~tplv-obj.webp"
+            ],
+            "width": 0
+         },
+         "gift_label_type": 9,
+         "gift_rank_recommend_info": "",
+         "gift_skin_to_gift_texts_infos": [],
+         "gift_skins": [],
+         "gift_sub_type": 0,
+         "gift_texts": [],
+         "gift_vertical_scenarios": [
+            9,
+            15,
+            0
+         ],
+         "gold_effect": "",
+         "group_in_tab": 0,
+         "icon": {
+            "avg_color": "#FAE6DC",
+            "height": 0,
+            "image_type": 0,
+            "is_animated": false,
+            "open_web_url": "",
+            "uri": "webcast-va/d56945782445b0b8c8658ed44f894c7b",
+            "url_list": [
+                  "https://p16-webcast.tiktokcdn.com/img/maliva/webcast-va/d56945782445b0b8c8658ed44f894c7b~tplv-obj.webp",
+                  "https://p19-webcast.tiktokcdn.com/img/maliva/webcast-va/d56945782445b0b8c8658ed44f894c7b~tplv-obj.webp"
+            ],
+            "width": 0
+         },
+         "id": 7934,
+         "image": {
+            "avg_color": "#E0D4BC",
+            "height": 0,
+            "image_type": 0,
+            "is_animated": false,
+            "open_web_url": "",
+            "uri": "webcast-va/d56945782445b0b8c8658ed44f894c7b",
+            "url_list": [
+                  "https://p16-webcast.tiktokcdn.com/img/maliva/webcast-va/d56945782445b0b8c8658ed44f894c7b~tplv-obj.webp",
+                  "https://p19-webcast.tiktokcdn.com/img/maliva/webcast-va/d56945782445b0b8c8658ed44f894c7b~tplv-obj.webp"
+            ],
+            "width": 0
+         },
+         "is_box_gift": false,
+         "is_broadcast_gift": false,
+         "is_displayed_on_panel": false,
+         "is_effect_befview": false,
+         "is_gallery_gift": false,
+         "is_global_gift": true,
+         "is_random_gift": false,
+         "lock_info": {
+            "gift_level": 0,
+            "highlight_enabled": false,
+            "lock": false,
+            "lock_type": 5,
+            "unlock_button_text": "",
+            "unlock_schema": ""
+         },
+         "name": "Heart Me",
+         "primary_effect_id": 2996,
+         "tracker_params": {},
+         "type": 4
+      }
+   },
+   "event like": {
+      "likeCount": 6,
+      "totalLikeCount": 10826,
+      "userId": "7150967192333583386",
+      "secUid": "MS4wLjABAAAA0YU9tW3tGFcJu0r4J1mc2qH8HjQ8VCuA19TEYs83WatodM-rt1ghfdD8zmhoSlf4",
+      "uniqueId": "dammedongot",
+      "nickname": "Shin Cyme",
+      "profilePictureUrl": "https://p16-sign-sg.tiktokcdn.com/tos-alisg-avt-0068/6a92a1573f599e6bb88574a09d8b0d8f~tplv-tiktokx-cropcenter:100:100.webp?dr=14579&refresh_token=80680107&x-expires=1743667200&x-signature=IvOzPUKKMHNyBtl951otll%2Fg6to%3D&t=4d5b0474&ps=13740610&shp=a5d48078&shcp=fdd36af4&idc=my2",
+      "followRole": 0,
+      "userBadges": [
+          {
+              "type": "privilege",
+              "privilegeId": "7138381747292493604",
+              "level": 12,
+              "badgeSceneType": 8
+          }
+      ],
+      "userSceneTypes": [
+          8
+      ],
+      "userDetails": {
+          "createTime": "0",
+          "bioDescription": "",
+          "profilePictureUrls": [
+              "https://p16-sign-sg.tiktokcdn.com/tos-alisg-avt-0068/6a92a1573f599e6bb88574a09d8b0d8f~tplv-tiktokx-cropcenter:100:100.webp?dr=14579&refresh_token=80680107&x-expires=1743667200&x-signature=IvOzPUKKMHNyBtl951otll%2Fg6to%3D&t=4d5b0474&ps=13740610&shp=a5d48078&shcp=fdd36af4&idc=my2",
+              "https://p9-sign-sg.tiktokcdn.com/tos-alisg-avt-0068/6a92a1573f599e6bb88574a09d8b0d8f~tplv-tiktokx-cropcenter:100:100.webp?dr=14579&refresh_token=7e7b1088&x-expires=1743667200&x-signature=lj3myqTbcflAnf5QXMrE2s165SI%3D&t=4d5b0474&ps=13740610&shp=a5d48078&shcp=fdd36af4&idc=my2",
+              "https://p16-sign-sg.tiktokcdn.com/tos-alisg-avt-0068/6a92a1573f599e6bb88574a09d8b0d8f~tplv-tiktokx-cropcenter:100:100.jpeg?dr=14579&refresh_token=5bd4a44d&x-expires=1743667200&x-signature=C8ljVFV9Rl5bPNrw23dnfyHbmlU%3D&t=4d5b0474&ps=13740610&shp=a5d48078&shcp=fdd36af4&idc=my2"
+          ]
+      },
+      "followInfo": {
+          "followingCount": 155,
+          "followerCount": 98,
+          "followStatus": 0,
+          "pushStatus": 0
+      },
+      "isModerator": false,
+      "isNewGifter": false,
+      "isSubscriber": false,
+      "topGifterRank": null,
+      "gifterLevel": 12,
+      "teamMemberLevel": 0,
+      "msgId": "7488258534547866641",
+      "createTime": "1743496055142",
+      "displayType": "pm_mt_guest_points_comments_likes_sent_to_guest",
+      "label": "{0:user} sent likes to {1:user}"
+  },
+  "groupMember": [
+      {
+         "userId": "6505541132893159426",
+         "nickname": "🦊N2F࿐",
+         "profilePicture": {
+            "urls": [
+                  "https://p16-sign-sg.tiktokcdn.com/tos-alisg-avt-0068/6f52d3054cae6c8ad0c27a23904a73a0~tplv-tiktokx-cropcenter:100:100.webp?dr=14579&refresh_token=faf4fa22&x-expires=1743681600&x-signature=I3R4sPq3FMR7ZTD%2FPxeqSqE5plw%3D&t=4d5b0474&ps=13740610&shp=a5d48078&shcp=fdd36af4&idc=maliva",
+                  "https://p9-sign-sg.tiktokcdn.com/tos-alisg-avt-0068/6f52d3054cae6c8ad0c27a23904a73a0~tplv-tiktokx-cropcenter:100:100.webp?dr=14579&refresh_token=afbf324b&x-expires=1743681600&x-signature=yRJXUTxa55BEuiruvvL6T%2FW9SJA%3D&t=4d5b0474&ps=13740610&shp=a5d48078&shcp=fdd36af4&idc=maliva",
+                  "https://p16-sign-sg.tiktokcdn.com/tos-alisg-avt-0068/6f52d3054cae6c8ad0c27a23904a73a0~tplv-tiktokx-cropcenter:100:100.jpeg?dr=14579&refresh_token=1a959b2a&x-expires=1743681600&x-signature=gxR8mNKUgsGwbY57vIJL5Sp0hRQ%3D&t=4d5b0474&ps=13740610&shp=a5d48078&shcp=fdd36af4&idc=maliva"
+            ]
+         },
+         "score": 0,
+         "avatarFilePath": "C:\\Users\\ducng\\TikTok-Chat-Reader\\memberAvatars\\6505541132893159426.jpg"
+      },
+      {
+         "userId": "7248896565702870021",
+         "nickname": "Aliz🤍",
+         "profilePicture": {
+            "urls": [
+                  "https://p16-sign-sg.tiktokcdn.com/tos-alisg-avt-0068/d7784e500256581c8c2671dab3351e7a~tplv-tiktokx-cropcenter:100:100.webp?dr=14579&refresh_token=3f0cfed7&x-expires=1743681600&x-signature=uZQYl5jLnC5c%2Fl%2FkAY%2FYI%2BNM%2FCg%3D&t=4d5b0474&ps=13740610&shp=a5d48078&shcp=fdd36af4&idc=maliva",
+                  "https://p9-sign-sg.tiktokcdn.com/tos-alisg-avt-0068/d7784e500256581c8c2671dab3351e7a~tplv-tiktokx-cropcenter:100:100.webp?dr=14579&refresh_token=374c3059&x-expires=1743681600&x-signature=pVA5rBAC%2F%2BDWmbQ6YE09CKIdCd4%3D&t=4d5b0474&ps=13740610&shp=a5d48078&shcp=fdd36af4&idc=maliva",
+                  "https://p16-sign-sg.tiktokcdn.com/tos-alisg-avt-0068/d7784e500256581c8c2671dab3351e7a~tplv-tiktokx-cropcenter:100:100.jpeg?dr=14579&refresh_token=ca89aad0&x-expires=1743681600&x-signature=vMX49h22a%2FQfFtjlH5yUUsgim20%3D&t=4d5b0474&ps=13740610&shp=a5d48078&shcp=fdd36af4&idc=maliva"
+            ]
+         },
+         "score": 0,
+         "avatarFilePath": "C:\\Users\\ducng\\TikTok-Chat-Reader\\memberAvatars\\7248896565702870021.jpg"
+      },
+      {
+         "userId": "7326616303131755527",
+         "nickname": "🐥Ôi Đạo Quán🐥",
+         "profilePicture": {
+            "urls": [
+                  "https://p16-sign-sg.tiktokcdn.com/tos-alisg-avt-0068/af89b1745aebdda42556a8ae09266363~tplv-tiktokx-cropcenter:100:100.webp?dr=14579&refresh_token=657e7a29&x-expires=1743681600&x-signature=47Oz2SZ%2Bk41EkHlyZrHmukPSFFI%3D&t=4d5b0474&ps=13740610&shp=a5d48078&shcp=fdd36af4&idc=maliva",
+                  "https://p9-sign-sg.tiktokcdn.com/tos-alisg-avt-0068/af89b1745aebdda42556a8ae09266363~tplv-tiktokx-cropcenter:100:100.webp?dr=14579&refresh_token=eecbb662&x-expires=1743681600&x-signature=STkE4dzAv0yMv%2FzBFRcuvZuXbHU%3D&t=4d5b0474&ps=13740610&shp=a5d48078&shcp=fdd36af4&idc=maliva",
+                  "https://p16-sign-sg.tiktokcdn.com/tos-alisg-avt-0068/af89b1745aebdda42556a8ae09266363~tplv-tiktokx-cropcenter:100:100.jpeg?dr=14579&refresh_token=ebc4fddc&x-expires=1743681600&x-signature=9FQbv7ToY98xht%2FcfRftBwxNB%2Fg%3D&t=4d5b0474&ps=13740610&shp=a5d48078&shcp=fdd36af4&idc=maliva"
+            ]
+         },
+         "score": 0,
+         "avatarFilePath": "C:\\Users\\ducng\\TikTok-Chat-Reader\\memberAvatars\\7326616303131755527.jpg"
+      },
+      {
+         "userId": "6568781596836921346",
+         "nickname": "YoungD 🇻🇳",
+         "profilePicture": {
+            "urls": [
+                  "https://p9-sign-sg.tiktokcdn.com/tos-alisg-avt-0068/1cf14a94077461e76b33427b0ac3d265~tplv-tiktokx-cropcenter:100:100.webp?dr=14579&refresh_token=cef4be07&x-expires=1743681600&x-signature=88JfDO9NDSULeQ8zETXuZrflQfU%3D&t=4d5b0474&ps=13740610&shp=a5d48078&shcp=fdd36af4&idc=maliva",
+                  "https://p16-sign-sg.tiktokcdn.com/tos-alisg-avt-0068/1cf14a94077461e76b33427b0ac3d265~tplv-tiktokx-cropcenter:100:100.webp?dr=14579&refresh_token=ce0563a7&x-expires=1743681600&x-signature=l8qOKS0X%2B0fG09VDWSQrR%2BO4Qlg%3D&t=4d5b0474&ps=13740610&shp=a5d48078&shcp=fdd36af4&idc=maliva",
+                  "https://p9-sign-sg.tiktokcdn.com/tos-alisg-avt-0068/1cf14a94077461e76b33427b0ac3d265~tplv-tiktokx-cropcenter:100:100.jpeg?dr=14579&refresh_token=c72e99e7&x-expires=1743681600&x-signature=HH1oPXnEF%2FYUVcbRr2Li0q60yUo%3D&t=4d5b0474&ps=13740610&shp=a5d48078&shcp=fdd36af4&idc=maliva"
+            ]
+         },
+         "score": 0,
+         "avatarFilePath": "C:\\Users\\ducng\\TikTok-Chat-Reader\\memberAvatars\\6568781596836921346.jpg"
+      }
+   ]
+}

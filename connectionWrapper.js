@@ -1,13 +1,33 @@
+const { ProxyAgent } = require('proxy-agent');
 const { WebcastPushConnection } = require('tiktok-live-connector');
 const { EventEmitter } = require('events');
 
 let globalConnectionCount = 0;
+const servers = [
+    'amsterdam.nl.socks.nordhold.net',
+    'atlanta.us.socks.nordhold.net',
+    'dallas.us.socks.nordhold.net',
+    'los-angeles.us.socks.nordhold.net',
+    'nl.socks.nordhold.net',
+    'se.socks.nordhold.net',
+    'stockholm.se.socks.nordhold.net',
+    'us.socks.nordhold.net',
+    'new-york.us.socks.nordhold.net',
+    'san-francisco.us.socks.nordhold.net',
+    'detroit.us.socks.nordhold.net'
+];
+
+// Select a random server
+const randomServer = servers[Math.floor(Math.random() * servers.length)];
+// NordVPN SOCKS5 Proxy Configuration
+const proxyUrl = `socks5://LkfqJo7HPsXH8vQhFKPodT8J:9ghKXu5Ubi5HLYNpU4DN3kLm@${randomServer}:1080`;
+const agent = new ProxyAgent(proxyUrl);
 
 /**
  * TikTok LIVE connection wrapper with advanced reconnect functionality and error handling
  */
 class TikTokConnectionWrapper extends EventEmitter {
-    constructor(uniqueId, options, enableLog) {
+    constructor(uniqueId, options = {}, enableLog = true) {
         super();
 
         this.uniqueId = uniqueId;
@@ -20,12 +40,22 @@ class TikTokConnectionWrapper extends EventEmitter {
         this.reconnectWaitMs = 1000;
         this.maxReconnectAttempts = 5;
 
+        // Inject proxy settings
+        // options.requestOptions = options.requestOptions || {};
+        // options.websocketOptions = options.websocketOptions || {};
+
+        // options.requestOptions.httpsAgent = agent;
+        // options.requestOptions.timeout = 10000; // 10 seconds
+
+        // options.websocketOptions.agent = agent;
+        // options.websocketOptions.timeout = 10000; // 10 seconds
+
         this.connection = new WebcastPushConnection(uniqueId, options);
 
         this.connection.on('streamEnd', () => {
             this.log(`streamEnd event received, giving up connection`);
             this.reconnectEnabled = false;
-        })
+        });
 
         this.connection.on('disconnected', () => {
             globalConnectionCount -= 1;
@@ -36,7 +66,7 @@ class TikTokConnectionWrapper extends EventEmitter {
         this.connection.on('error', (err) => {
             this.log(`Error event triggered: ${err.info}, ${err.exception}`);
             console.error(err);
-        })
+        });
     }
 
     connect(isReconnect) {
@@ -70,11 +100,10 @@ class TikTokConnectionWrapper extends EventEmitter {
                 // Notify client
                 this.emit('disconnected', err.toString());
             }
-        })
+        });
     }
 
     scheduleReconnect(reason) {
-
         if (!this.reconnectEnabled) {
             return;
         }
@@ -96,7 +125,7 @@ class TikTokConnectionWrapper extends EventEmitter {
             this.reconnectWaitMs *= 2;
             this.connect(true);
 
-        }, this.reconnectWaitMs)
+        }, this.reconnectWaitMs);
     }
 
     disconnect() {

@@ -3,11 +3,21 @@ require('dotenv').config();
 const express = require('express');
 const { createServer } = require('http');
 const { Server } = require('socket.io');
+const fs = require('fs');
+const path = require('path');
+const request = require('request'); // For downloading images
+const { OBSWebSocket } = require('obs-websocket-js');
 const { TikTokConnectionWrapper, getGlobalConnectionCount } = require('./connectionWrapper');
 const { clientBlocked } = require('./limiter');
 
 const app = express();
 const httpServer = createServer(app);
+
+//use express to parse json
+app.use(express.json());
+
+//create obs instance
+const obs = new OBSWebSocket();
 
 // Enable cross origin resource sharing
 const io = new Server(httpServer, {
@@ -16,18 +26,137 @@ const io = new Server(httpServer, {
     }
 });
 
+// API route to save member avatars
+app.post('/saveMemberAvatars', (req, res) => {
+    const imageUrls = req.body.imageUrls;
+    const avatarFilePaths = {}; // Use an object to store userId -> filePath mapping
+
+    const avatarsDir = path.join(__dirname, 'memberAvatars');
+
+    // Ensure the directory exists and clear old files
+    if (!fs.existsSync(avatarsDir)) {
+        fs.mkdirSync(avatarsDir);
+    } else {
+        fs.readdir(avatarsDir, (err, files) => {
+            if (err) {
+                console.error('Error reading directory:', err);
+                return;
+            }
+            files.forEach(file => {
+                fs.unlinkSync(path.join(avatarsDir, file));
+            });
+        });
+    }
+
+    let processedCount = 0; // Track completed downloads
+
+    imageUrls.forEach(({ url, userId }) => {
+        const fileName = `${userId}.jpg`;
+        const filePath = path.join(avatarsDir, fileName);
+
+        // Download the image and save it
+        request(url)
+            .pipe(fs.createWriteStream(filePath))
+            .on('finish', () => {
+                avatarFilePaths[userId] = filePath;
+                processedCount++;
+                console.log(`Downloaded and saved image for userId ${userId} to ${filePath}`);
+                
+                // Send the response when all images are processed
+                if (processedCount === imageUrls.length) {
+                    res.json({ avatarFilePaths });
+                }
+            })
+            .on('error', err => {
+                console.error(`Error downloading image for userId ${userId}:`, err);
+            });
+    });
+});
+// app.post('/saveMemberAvatars', (req, res) => {
+//     const imageUrls = req.body.imageUrls;
+//     const avatarFilePaths = [];
+    
+//     // Assuming the images are saved in a 'memberAvatars' folder
+//     const avatarsDir = path.join(__dirname, 'memberAvatars');
+    
+//     // Create the folder if it doesn't exist
+//     if (!fs.existsSync(avatarsDir)) {
+//       fs.mkdirSync(avatarsDir);
+//     }else {
+//         //empty the folder
+//         fs.readdir(avatarsDir, (err, files) => {
+//             if (err) {
+//                 console.error('Error reading directory:', err);
+//                 return;
+//             }
+//             files.forEach(file => {
+//                 const filePath = path.join(avatarsDir, file);
+//                 fs.unlink(filePath, err => {
+//                     if (err) {
+//                         console.error('Error deleting file:', err);
+//                     }
+//                 });
+//             });
+//         });
+//     }
+  
+//     // Iterate over each image URL and download the image
+//     imageUrls.forEach((url) => {
+//       const fileName = `${url.userId}.jpg`; // Use a unique name for each file
+//       const filePath = path.join(avatarsDir, fileName);
+  
+//       // Download the image and save it
+//       request(url.url)
+//         .pipe(fs.createWriteStream(filePath))
+//         .on('finish', () => {
+//             //push filepathto array
+//             avatarFilePaths.push(filePath);
+
+//             // avatarFilePaths.push(fullPath);
+//         //   avatarFilePaths.push(`/memberAvatars/${fileName}`);
+  
+//           // Send the response when all images are saved
+//           if (avatarFilePaths.length === imageUrls.length) {
+//             res.json({ avatarFilePaths });
+//           }
+//         });
+//     });
+//   });
+  
+  // Serve the images from the 'memberAvatars' folder
+  app.use('/memberAvatars', express.static(path.join(__dirname, 'memberAvatars')));
+
+
+// Connect to OBS WebSocket function
+async function connectToOBS() {
+    //check if obs is already connected
+    if (obs._socket && obs._socket.readyState === 1) {
+        console.log('Already connected to OBS');
+        return;
+    }
+    try {
+        // Connect to OBS WebSocket
+        await obs.connect(
+            process.env.OBS_ADDRESS || 'ws://localhost:4455',
+            process.env.OBS_PASSWORD || ''
+        );
+        console.log('Connected to OBS WebSocket');
+    } catch (error) {
+        console.error('Failed to connect to OBS WebSocket:', error);
+    }
+}
 
 io.on('connection', (socket) => {
     let tiktokConnectionWrapper;
 
     console.info('New connection from origin', socket.handshake.headers['origin'] || socket.handshake.headers['referer']);
-
+    // connectToOBS();
     socket.on('setUniqueId', (uniqueId, options) => {
 
         // Prohibit the client from specifying these options (for security reasons)
         if (typeof options === 'object' && options) {
-            delete options.requestOptions;
-            delete options.websocketOptions;
+            // delete options.requestOptions;
+            // delete options.websocketOptions;
         } else {
             options = {};
         }
@@ -77,14 +206,8 @@ io.on('connection', (socket) => {
         tiktokConnectionWrapper.connection.on('emote', msg => socket.emit('emote', msg));
         tiktokConnectionWrapper.connection.on('envelope', msg => socket.emit('envelope', msg));
         tiktokConnectionWrapper.connection.on('subscribe', msg => socket.emit('subscribe', msg));
-        tiktokConnectionWrapper.connection.on('liveMember', msg => {
-            console.log("Live Member",msg);
-            socket.emit('liveMember', msg)}
-        );
-        tiktokConnectionWrapper.connection.on('competition', msg => {
-            console.log("Competition",msg);    
-            socket.emit('competition', msg)
-        });
+        tiktokConnectionWrapper.connection.on('liveMember', msg => socket.emit('liveMember', msg));
+        tiktokConnectionWrapper.connection.on('competition', msg => socket.emit('competition', msg));   
     });
 
     socket.on('disconnect', () => {
