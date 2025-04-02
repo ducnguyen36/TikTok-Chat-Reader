@@ -34,10 +34,10 @@ class TikTokIOConnection {
         });
     }
 
-    connect(uniqueId, options) {
+    connect(uniqueId, proxy=false, options) {
         this.uniqueId = uniqueId;
         this.options = options || {};
-
+        this.proxy = proxy;
         // Nếu socket đã được kết nối và chưa gửi uniqueId, gọi setUniqueId
         if (this.socket.connected && !this.uniqueIdSet) {
             this.setUniqueId();
@@ -55,7 +55,7 @@ class TikTokIOConnection {
 
     setUniqueId() {
         this.uniqueIdSet = true; // đánh dấu đã gửi uniqueId
-        this.socket.emit('setUniqueId', this.uniqueId, this.options);
+        this.socket.emit('setUniqueId', this.uniqueId, this.options, this.proxy);
     }
 
     on(eventName, eventHandler) {

@@ -9,7 +9,7 @@ let diamondsCount = 0;
 
 let scoreTemp = [];
 var talents =[];
-
+let roomState;
 //create obs instance
 const obs = new OBSWebSocket();
 
@@ -57,17 +57,63 @@ $(document).ready(() => {
 
 function connect() {
     let uniqueId = window.settings.username || $('#uniqueIdInput').val();
+    let proxy = window.settings.proxy || false;
     if (uniqueId !== '') {
 
         $('#stateText').text('Connecting...');
 
-        connection.connect(uniqueId, {
+        connection.connect(uniqueId, proxy, {
             enableExtendedGiftInfo: true
             // processInitialData: false,
             // fetchRoomInfoOnConnect: false
         }).then(state => {
             $('#stateText').text(`Connected to roomId ${state.roomId}`);
-
+            roomState = state;
+            $('h1').text(`HT - ${roomState.roomInfo.owner.nickname.toUpperCase()}`);
+            // Adding the whole group as a member
+            if(talents.length && !talents[0].isHost){
+              talents.unshift({
+                userId: roomState.roomId,
+                uniqueId: roomState.roomInfo.owner.display_id,
+                nickname: roomState.roomInfo.owner.nickname,
+                profilePicture: {
+                  urls: roomState.roomInfo.cover.url_list
+                },
+                score: 0,
+                isHost: true    
+              });
+              console.log('Members with Group', talents);
+        
+              // Clear the group members container
+              var $groupMembers = $("#groupmembers");
+              $groupMembers.empty(); // Clear any existing content
+        
+              // Iterate over each live member and build the HTML structure
+              $.each(talents, function(index, member) {
+                // Create container div
+                var $memberContainer = $('<div class="memberContainer"></div>').attr('data-userid', member.userId);;
+                
+                // Create the member avatar element (using the first URL)
+                var imgUrl = member.profilePicture.urls[0];
+                var $memberAvatar = $('<div class="memberAvatar"></div>').append(
+                  $('<img>').attr("src", imgUrl).attr("alt", member.$nickname)
+                );
+                
+                // Create the member info element
+                var $memberInfo = $('<div class="memberInfo"></div>');
+                var $nickname = $('<div class="memberNickname"></div>').text(member.nickname);
+                // var $userId = $('<div class="memberId"></div>').text(member.userId);
+                var $score = $('<div class="memberScore"></div>').text(member.score);
+                $memberInfo.append($nickname, $score);
+                
+                // Append the avatar and info to the container
+                $memberContainer.append($memberAvatar, $memberInfo);
+                
+                // Append the member container to the groupmembers container
+                $groupMembers.append($memberContainer);
+              });
+            }
+            
             // reset stats
             // talents = [];
             viewerCount = 0;
@@ -81,7 +127,7 @@ function connect() {
             // schedule next try if obs username set
             if (window.settings.username) {
                 setTimeout(() => {
-                    connect(window.settings.username);
+                    connect(window.settings.username, window.setting.proxy);
                 }, 30000);
             }
         })
@@ -97,11 +143,16 @@ function sanitize(text) {
 }
 
 function updateRoomStats() {
-    $('#roomStats').html(`Viewers: <b>${viewerCount.toLocaleString()}</b> Likes: <b>${likeCount.toLocaleString()}</b> Earned Diamonds: <b>${diamondsCount.toLocaleString()}</b>`)
+    $('#roomStats').html(`👀: <b>${viewerCount.toLocaleString()}</b> 💓: <b>${likeCount.toLocaleString()}</b> 🪙: <b>${diamondsCount.toLocaleString()}</b> 💻: <b>${talents.reduce((sum, member) => sum + member.score, 0)}</b>`)
 }
 
 function generateUsernameLink(data) {
-    return `<a class="usernamelink" href="https://www.tiktok.com/@${data.uniqueId}" target="_blank">${data.nickname}(${data.uniqueId})</a>`;
+    return `
+      <a class="usernamelink" href="https://www.tiktok.com/@${data.uniqueId}" target="_blank">
+        <img class="miniprofilepicture" src="${data.profilePictureUrl}">
+        ${data.nickname}(${data.uniqueId})
+      </a>
+    `;
 }
 
 function isPendingStreak(data) {
@@ -120,7 +171,7 @@ function addChatItem(color, data, text, summarize) {
 
     container.find('.temporary').remove();;
 
-    container.append(`
+    container.prepend(`
         <div class=${summarize ? 'temporary' : 'static'}>
             <img class="miniprofilepicture" src="${data.profilePictureUrl}">
             <span>
@@ -130,10 +181,10 @@ function addChatItem(color, data, text, summarize) {
         </div>
     `);
 
-    container.stop();
-    container.animate({
-        scrollTop: container[0].scrollHeight
-    }, 400);
+    // container.stop();
+    // container.animate({
+    //     scrollTop: container[0].scrollHeight
+    // }, 400);
 }
 
 /**
@@ -150,28 +201,46 @@ function addGiftItem(data) {
     let streakId = data.userId.toString() + '_' + data.giftId;
 
     let html = `
-        <div data-streakid=${isPendingStreak(data) ? streakId : ''}>
-            <img class="miniprofilepicture" src="${data.profilePictureUrl}">
+        <div data-streakid=${isPendingStreak(data) ? streakId : "'' "}
+          style="background-color: ${
+            data.diamondCount >= 199 && data.diamondCount <= 450 ? 'rgba(173, 216, 230, 0.4)' : // Light pastel blue
+            data.diamondCount >= 451 && data.diamondCount <= 1400 ? 'rgba(135, 206, 250, 0.4)' : // Sky blue pastel
+            data.diamondCount >= 1401 && data.diamondCount <= 3500 ? 'rgba(147, 112, 219, 0.4)' : // Light lavender pastel
+            data.diamondCount >= 3501 && data.diamondCount <= 10000 ? 'rgba(186, 85, 211, 0.4)' : // Orchid pastel
+            data.diamondCount >= 10001 && data.diamondCount <= 20000 ? 'rgba(218, 112, 214, 0.4)' : // Pale violet pastel
+            data.diamondCount > 20000 ? 'rgba(221, 160, 221, 0.4)' : // Medium pastel purple
+            'transparent'
+          }; padding: 3px; margin-bottom: 1px; border-radius: 5px;"
+        >
             <span>
-                <b>${generateUsernameLink(data)}</b> <span>${data.describe}</span>
-                ${data.receiverUserDetails ? `
-                    for
-                    <img class="miniprofilepicture" src="${data.receiverUserDetails.profilePictureUrl}">
-                    <b>${generateUsernameLink(data.receiverUserDetails)}</b>
-                ` : ''}
-                <br>
-                <div>                                                                   
-                    <table>                     
-                        <tr>
-                            <td><img class="gifticon" src="${data.giftPictureUrl}"></td>
-                            <td>
-                                <span>Name: <b>${data.giftName}</b> (ID:${data.giftId})<span><br>
-                                <span>Repeat: <b style="${isPendingStreak(data) ? 'color:red' : ''}">x${data.repeatCount.toLocaleString()}</b><span><br>
-                                <span>Cost: <b>${(data.diamondCount * data.repeatCount).toLocaleString()} Diamonds</b><span>
-                            </td>
-                        </tr>
-                    </tabl>
-                </div>
+                <b>${generateUsernameLink(data)}</b>
+                <span>
+                  ${data.describe}
+                  <img class="gifticon" src="${data.giftPictureUrl}">
+                  <b style="${isPendingStreak(data) ? 'color:red' : ''}">x${data.repeatCount.toLocaleString()}</b>
+                  (<b>${(data.diamondCount * data.repeatCount).toLocaleString()} 🪙</b> - ${data.giftId}) to
+                  <b>${data.receiverUserDetails ? `
+                    ${generateUsernameLink(data.receiverUserDetails)}
+                  ` : `
+                    <a class="usernamelink" href="https://www.tiktok.com/@${talents[0].uniqueId}" target="_blank">
+                      <img class="miniprofilepicture" src="${talents[0].profilePicture.urls[0]}">
+                      ${talents[0].nickname}(${talents[0].uniqueId})
+                    </a>
+                  `}</b>
+                </span><br>
+                ${isPendingStreak(data) ? '': `
+                  <span>
+                      ${[...talents].map(talent => `
+                        <button
+                          ${((!data.receiverUserDetails && talent.isHost) || (data.receiverUserDetails && talent.userId === data.receiverUserDetails.userId)) ? 'class="active"' : ''}
+                          data-info='${encodeURIComponent(JSON.stringify(data)).replace(/'/g, "%27")}'
+                          onclick=updateLog(this)
+                        >
+                          ${talent.nickname}
+                        </button>  
+                      `).join('')}
+                  </span>
+                `}
             </span>
         </div>
     `;
@@ -181,13 +250,13 @@ function addGiftItem(data) {
     if (existingStreakItem.length) {
         existingStreakItem.replaceWith(html);
     } else {
-        container.append(html);
+        container.prepend(html);
     }
 
-    container.stop();
-    container.animate({
-        scrollTop: container[0].scrollHeight
-    }, 800);
+    // container.stop();
+    // container.animate({
+    //     scrollTop: container[0].scrollHeight
+    // }, 800);
 }
 
 // Global variables for the two teams (competitors)
@@ -385,11 +454,11 @@ connection.on('competition', (msg) => {
   });
 //live member
 connection.on('liveMember', (msg) => {
-  if(talents.length > 0) return;
+  if(talents.length > 1) return;
+  if(talents.length === 1 && !talents[0].isHost) return;
     // console.log('window href:',window.location.href);
     // if(!window.location.href.includes('index.html')) return;
     // console.log('Event LIVE group member', msg);
-    
     talents = msg.liveMembers.map(function(member) {
         member.score = 0; // Default score; adjust logic as needed
         return member;
@@ -397,35 +466,53 @@ connection.on('liveMember', (msg) => {
     console.log('group member before avatar', talents);
     // Call the server to save the avatar images and get file paths
     saveAvatarsAndGetPaths(talents);
+    // Adding the whole group as a member
+    if(roomState){
+      talents.unshift({
+        userId: roomState.roomId,
+        uniqueId: roomState.roomInfo.owner.display_id,
+        nickname: roomState.roomInfo.owner.nickname,
+        profilePicture: {
+          urls: roomState.roomInfo.cover.url_list
+        },
+        score: 0,
+        isHost: true    
+      });
+      console.log('Members with Group', talents);
 
+      // Clear the group members container
+      var $groupMembers = $("#groupmembers");
+      $groupMembers.empty(); // Clear any existing content
+
+      // Iterate over each live member and build the HTML structure
+      $.each(talents, function(index, member) {
+        // Create container div
+        var $memberContainer = $('<div class="memberContainer"></div>').attr('data-userid', member.userId);;
+        
+        // Create the member avatar element (using the first URL)
+        var imgUrl = member.profilePicture.urls[0];
+        var $memberAvatar = $('<div class="memberAvatar"></div>').append(
+          $('<img>').attr("src", imgUrl).attr("alt", member.$nickname)
+        );
+        
+        // Create the member info element
+        var $memberInfo = $('<div class="memberInfo"></div>');
+        var $nickname = $('<div class="memberNickname"></div>').text(member.nickname);
+        // var $userId = $('<div class="memberId"></div>').text(member.userId);
+        var $score = $('<div class="memberScore"></div>').text(member.score);
+        $memberInfo.append($nickname, $score);
+        
+        // Append the avatar and info to the container
+        $memberContainer.append($memberAvatar, $memberInfo);
+        
+        // Append the member container to the groupmembers container
+        $groupMembers.append($memberContainer);
+      });
+    }
+    
     console.log('LIVE group member', talents);
-    var $groupMembers = $("#groupmembers");
-    $groupMembers.empty(); // Clear any existing content
+    
 
-    // Iterate over each live member and build the HTML structure
-    $.each(talents, function(index, member) {
-    // Create container div
-    var $memberContainer = $('<div class="memberContainer"></div>').attr('data-userid', member.userId);;
-    
-    // Create the member avatar element (using the first URL)
-    var imgUrl = member.profilePicture.urls[0];
-    var $memberAvatar = $('<div class="memberAvatar"></div>').append(
-      $('<img>').attr("src", imgUrl).attr("alt", member.$nickname)
-    );
-    
-    // Create the member info element
-    var $memberInfo = $('<div class="memberInfo"></div>');
-    var $nickname = $('<div class="memberNickname"></div>').text(member.nickname);
-    // var $userId = $('<div class="memberId"></div>').text(member.userId);
-    var $score = $('<div class="memberScore"></div>').text(member.score);
-    $memberInfo.append($nickname, $score);
-    
-    // Append the avatar and info to the container
-    $memberContainer.append($memberAvatar, $memberInfo);
-    
-    // Append the member container to the groupmembers container
-    $groupMembers.append($memberContainer);
-  });
 })
 //save avatars and get paths
 function saveAvatarsAndGetPaths(members) {
@@ -583,6 +670,11 @@ function updateTalentScore(giftData, calculatedScore) {
       // Update the UI with the new score
       $('#groupmembers .memberContainer[data-userid="' + talent.userId + '"] .memberScore')
           .text(talent.score);
+  } else {
+      //Added the score to talents[0]
+      talents[0].score += calculatedScore;
+      $('#groupmembers .memberContainer[data-userid="' + talents[0].userId + '"] .memberScore')
+          .text(talents[0].score);
   }
 }
 //  var initCompetitionData = {

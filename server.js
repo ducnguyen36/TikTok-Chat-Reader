@@ -60,8 +60,8 @@ app.post('/saveMemberAvatars', (req, res) => {
             .on('finish', () => {
                 avatarFilePaths[userId] = filePath;
                 processedCount++;
-                console.log(`Downloaded and saved image for userId ${userId} to ${filePath}`);
-                
+                console.log(`Downloaded from ${url} and saved image for userId ${userId} to ${filePath}`);
+
                 // Send the response when all images are processed
                 if (processedCount === imageUrls.length) {
                     res.json({ avatarFilePaths });
@@ -72,60 +72,22 @@ app.post('/saveMemberAvatars', (req, res) => {
             });
     });
 });
-// app.post('/saveMemberAvatars', (req, res) => {
-//     const imageUrls = req.body.imageUrls;
-//     const avatarFilePaths = [];
-    
-//     // Assuming the images are saved in a 'memberAvatars' folder
-//     const avatarsDir = path.join(__dirname, 'memberAvatars');
-    
-//     // Create the folder if it doesn't exist
-//     if (!fs.existsSync(avatarsDir)) {
-//       fs.mkdirSync(avatarsDir);
-//     }else {
-//         //empty the folder
-//         fs.readdir(avatarsDir, (err, files) => {
-//             if (err) {
-//                 console.error('Error reading directory:', err);
-//                 return;
-//             }
-//             files.forEach(file => {
-//                 const filePath = path.join(avatarsDir, file);
-//                 fs.unlink(filePath, err => {
-//                     if (err) {
-//                         console.error('Error deleting file:', err);
-//                     }
-//                 });
-//             });
-//         });
-//     }
-  
-//     // Iterate over each image URL and download the image
-//     imageUrls.forEach((url) => {
-//       const fileName = `${url.userId}.jpg`; // Use a unique name for each file
-//       const filePath = path.join(avatarsDir, fileName);
-  
-//       // Download the image and save it
-//       request(url.url)
-//         .pipe(fs.createWriteStream(filePath))
-//         .on('finish', () => {
-//             //push filepathto array
-//             avatarFilePaths.push(filePath);
-
-//             // avatarFilePaths.push(fullPath);
-//         //   avatarFilePaths.push(`/memberAvatars/${fileName}`);
-  
-//           // Send the response when all images are saved
-//           if (avatarFilePaths.length === imageUrls.length) {
-//             res.json({ avatarFilePaths });
-//           }
-//         });
-//     });
-//   });
   
   // Serve the images from the 'memberAvatars' folder
   app.use('/memberAvatars', express.static(path.join(__dirname, 'memberAvatars')));
 
+//a function to create a Log file for gifts received and update
+function createGiftLogFile(gift) {
+    //logDir will be logs/tyht/MMYY
+    folderDate = new Date(new Date() - 25200000);
+    const logDir = path.join(__dirname, 'logs', 'tyht', `${folderDate.getMonth() + 1}${folderDate.getFullYear()}`);
+    if (!fs.existsSync(logDir)) {
+        fs.mkdirSync(logDir, { recursive: true });
+    }
+    //filename will be formatted as YYYYMMDD_HHMMSS.json but the is in UTC+0, know that we are at UTC+7
+    const filename = `${new Date().getFullYear()}${String(new Date().getMonth() + 1).padStart(2, '0')}${String(new Date().getDate()).padStart(2, '0')}_${String(new Date().getHours()).padStart(2, '0')}${String(new Date().getMinutes()).padStart(2, '0')}${String(new Date().getSeconds()).padStart(2, '0')}.json`;
+    
+} 
 
 // Connect to OBS WebSocket function
 async function connectToOBS() {
@@ -151,7 +113,7 @@ io.on('connection', (socket) => {
 
     console.info('New connection from origin', socket.handshake.headers['origin'] || socket.handshake.headers['referer']);
     // connectToOBS();
-    socket.on('setUniqueId', (uniqueId, options) => {
+    socket.on('setUniqueId', (uniqueId, options, proxy) => {
 
         // Prohibit the client from specifying these options (for security reasons)
         if (typeof options === 'object' && options) {

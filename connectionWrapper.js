@@ -27,31 +27,32 @@ const agent = new ProxyAgent(proxyUrl);
  * TikTok LIVE connection wrapper with advanced reconnect functionality and error handling
  */
 class TikTokConnectionWrapper extends EventEmitter {
-    constructor(uniqueId, options = {}, enableLog = true) {
+    constructor(uniqueId, options = {}, enableLog = true, proxy = false) {
         super();
 
         this.uniqueId = uniqueId;
         this.enableLog = enableLog;
-
+        this.proxy = proxy;
         // Connection State
         this.clientDisconnected = false;
         this.reconnectEnabled = true;
         this.reconnectCount = 0;
         this.reconnectWaitMs = 1000;
         this.maxReconnectAttempts = 5;
-
-        // Inject proxy settings
-        // options.requestOptions = options.requestOptions || {};
-        // options.websocketOptions = options.websocketOptions || {};
-
-        // options.requestOptions.httpsAgent = agent;
-        // options.requestOptions.timeout = 10000; // 10 seconds
-
-        // options.websocketOptions.agent = agent;
-        // options.websocketOptions.timeout = 10000; // 10 seconds
+        if(this.proxy) {
+            // Inject proxy settings
+            options.requestOptions = options.requestOptions || {};
+            options.websocketOptions = options.websocketOptions || {};
+    
+            options.requestOptions.httpsAgent = agent;
+            options.requestOptions.timeout = 10000; // 10 seconds
+    
+            options.websocketOptions.agent = agent;
+            options.websocketOptions.timeout = 10000; // 10 seconds
+        }
 
         this.connection = new WebcastPushConnection(uniqueId, options);
-
+        
         this.connection.on('streamEnd', () => {
             this.log(`streamEnd event received, giving up connection`);
             this.reconnectEnabled = false;

@@ -1,6 +1,8 @@
 body {
     font-family:Arial, Helvetica, sans-serif;
-    min-width: 800px;
+    min-width: 481px;
+    width:99%;
+    margin: 0 0 0 4px;
 }
 
 h1 {
@@ -8,13 +10,20 @@ h1 {
     margin-top: 0px;
     margin-bottom: 0px;
 }
+.inputFields {
+  margin-bottom: 4px;
+}
+
+#stateText {
+  margin: 4px 0;
+}
 
 a {
     color: #58a6ff;
 }
 
 .head {
-    margin-bottom: 15px;
+    margin-bottom: 4px;
 }
 
 .subTitle {
@@ -33,12 +42,12 @@ a {
 }
 
 #roomStats {
-    width: 100%;
-    text-align: right;
+    text-align: left;
+    margin: 8px 0;
 }
 
 #roomStats b {
-    margin-right: 20px;
+    margin-right: 8px;
 }
 
 .splitchattable, .splitstatetable {
@@ -55,7 +64,8 @@ a {
 
 .chatcontainer, .giftcontainer, .eventcontainer {
     overflow-y: scroll;
-    height: calc(100vh - 240px);
+    height: calc(100vh - 230px);
+    width: calc(100vw - 19px);
     word-wrap: break-word;
 }
 
@@ -65,47 +75,53 @@ a {
 
 .chatcontainer {
     min-width: 400px;
-    max-width: calc(100vw - 430px);
+    /* max-width: calc(100vw - 430px); */
 }
 
 .giftcontainer {
     min-width: 400px;
+    margin: 12px 0 0 0;
 }
 
-.miniprofilepicture {
+.miniprofilepicture, .gifticon {
     height: 20px;
     width: 20px;
 }
 
-.gifticon {
+button.active {
+  background-color: #d4a1f5;
+  color: white;
+  font-weight: bold;
+}
+
+/* .gifticon {
     height: 50px;
     width: 50px;
     margin-right: 10px;
-}
+} */
 
 /* Container holding all members */
 #groupmembers {
     display: flex;
     flex-wrap: wrap;
-    gap: 5px; /* space between member containers */
-    transform: scale(0.8);
-    transform-origin: top left; /* ensures the scaling starts from the top-left corner */
+    gap: 4px; /* space between member containers */
   }
   
   /* Each member container */
   .memberContainer {
     display: flex;
     align-items: center;
-    padding: 10px;
+    padding: 5px;
     border: 1px solid #ccc; /* optional border */
     border-radius: 8px;
+    flex: 0 0 auto;            /* don't stretch member containers */
   }
   
   /* Member avatar styling */
   .memberAvatar {
-    width: 50px;
-    height: 50px;
-    margin-right: 10px;
+    width: 36px;
+    height: 36px;
+    margin-right: 4px;
     border-radius: 50%;
     overflow: hidden;
   }
@@ -124,12 +140,7 @@ a {
   
   .memberNickname {
     font-weight: bold;
-    margin-bottom: 5px;
-  }
-  
-  .memberId {
-    font-size: 0.9em;
-    color: #777;
+    /* margin-bottom: 5px; */
   }
 
   #pkCompetitor {
@@ -139,10 +150,6 @@ a {
     width: 100%;
     max-width: 800px;          /* optional max width */
     margin: 0 auto;            /* centers the container on the page */
-  }
-  
-  .memberContainer {
-    flex: 0 0 auto;            /* don't stretch member containers */
   }
   
   /* Optional: style the PK text */

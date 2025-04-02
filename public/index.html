@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TikTok LIVE Chat Reader (Demo)</title>
+    <title>HELIOS TALENT</title>
 
     <meta name="description" content="A chat reader for TikTok LIVE utilizing TikTok-Live-Connector and Socket.IO to forward the data to the client. This demo project uses the unofficial TikTok API to retrieve chat comments, gifts and other events from TikTok LIVE.">
     <meta name="keywords" content="TikTok,Live,Livestream,Chat,Reader,Scraper,Tracker,tiktok.com,broadcast,api,library,node,node.js,javascript">
@@ -22,54 +22,120 @@
     <script>
         window.settings = Object.fromEntries(new URLSearchParams(location.search));
         // window.settings = {username: 'kxg.acespace'}
-        
+        function updateLog(button){
+            if(button.classList.contains('active')) return;
+            const dataInfo = button.getAttribute('data-info');
+            const decodedData = decodeURIComponent(dataInfo); // Decode safely
+            console.log('decodedData',decodedData);
+            const data = JSON.parse(decodedData); // Parse into JSON
+            console.log('dataLog',data); // Now data is accessible safely
+            //match the button text nickname to the talents to find the talent
+            let talent = talents.find(t => t.nickname === button.innerText);
+            let previousTalent = null;
+            let score = parseInt(button.parentElement.previousElementSibling.previousElementSibling.childNodes[5].innerText);
+            //update UI gift
+            //update text describe
+            button.parentElement.previousElementSibling.previousElementSibling.childNodes[7].innerHTML = `<b><a class="usernamelink" href="https://www.tiktok.com/@${talent.uniqueId}" target="_blank">
+                      <img class="miniprofilepicture" src="${talent.profilePicture.urls[0]}">
+                      ${talent.nickname}
+                    </a></b>`
+            //update active button
+            //remove active class from all buttons
+            button.parentElement.querySelectorAll('button').forEach(btn => {
+                if(btn.classList.contains('active')){
+                    btn.classList.remove('active');
+                    previousTalent = talents.find(t => t.nickname === btn.innerText);
+                    //update score previous talent
+                    previousTalent.score -= score;
+                    //update UI score previous talent
+                    $('#groupmembers .memberContainer[data-userid="' + previousTalent.userId + '"] .memberScore')
+                        .text(previousTalent.score);
+                }
+            });
+            //add active class to the clicked button
+            button.classList.add('active');
+            //update score
+            talent.score += score;
+            //update UI score
+            $('#groupmembers .memberContainer[data-userid="' + talent.userId + '"] .memberScore')
+                .text(talent.score);
+            
+            //calculate score and update talent score UI
+            
+            // const talent = button.innerText === 'None'?'':button.innerText;
+            // if(talent === 'Score'){
+            //     console.log(talent)
+            //     connection.log(data,talent);
+            //     return;
+            // }
+            // console.log(data,talent);
+            // let text = button.parentElement.previousElementSibling.previousElementSibling;
+            // const talentRegex = /to <b>(.*?)<\/b>/;
+            // const match = text.innerHTML.match(talentRegex);
+            // let oldTalent = match ? match[1] : null; // Extract the first capturing group or null if no match
+            // console.log('old Talent',oldTalent);
+            // if(talent){
+            //     if(talentRegex.test(text.innerHTML)){
+            //         text.innerHTML = text.innerHTML.replace(talentRegex,`to <b>${talent}</b>`);
+            //     }else{
+            //         text.innerHTML += `to <b>${talent}</b>`;
+            //     }
+            // }else {
+            //     text.innerHTML = text.innerHTML.replace(talentRegex,'');
+            // }
+            // if(battleing){
+                
+            //     let score = data.diamondCount * data.repeatCount, scoreLeft = scoreRight = 0;
+            //     if(talent === teamLeft) scoreLeft = score;
+            //     else if(talent === teamRight) scoreRight = score;
+            //     if(oldTalent === teamLeft) scoreLeft = scoreLeft - score;
+            //     else if(oldTalent === teamRight) scoreRight = scoreRight - score;
+            //     if(scoreLeft || scoreRight) connection.updateScore(scoreLeft, scoreRight);
+            // }
+            // connection.log(data,talent);
+            // const parent = button.parentNode; // Get the parent container of the buttons
+            // const siblingButtons = parent.querySelectorAll('button'); // Find all sibling buttons within the parent
+
+            // // Remove the 'active' state from all sibling buttons
+            // siblingButtons.forEach(btn => {
+            //     btn.style.backgroundColor = ''; // Reset background color
+            //     btn.style.color = ''; // Reset text color
+            //     btn.style.fontWeight = ''; // Reset font weight
+            // });
+
+            // if (button.innerText !== 'None') {
+            //     // Apply active styles only if the button is not "None"
+            //     button.style.backgroundColor = '#d4a1f5'; // Light pastel purple background
+            //     button.style.color = 'white'; // White text color
+            //     button.style.fontWeight = 'bold'; // Bold text
+            // }
+        }
         
     </script>
 </head>
 <body>
     <div class="head">
-        <h1>TikTok LIVE Chat Reader</h1>     
+        <h1>HELIOS TALENT</h1>     
     </div>
 
     <div class="inputFields">
-        <p>Enter the <b>@username</b> of a user who is currently live:</p>
-        <input type="text" id="uniqueIdInput">
+        <pre id="stateText"></pre>
+        <label>Username: </label>
+        <input type="text" id="uniqueIdInput" placeholder="Enter username">
         <input type="button" id="connectButton" value="connect">
+        <input type="button" id="disconnectButton" value="disconnect">
     </div>
-    <table class="splitstatetable">
-        <tr>
-            <td>
-                <div id="groupmembers"></div>
-            </td>
-            <td>
-              <div id="pkCompetitor"></div>
-            </td>
-        </tr>
-    </table>
-    <table class="splitstatetable">
-        <tr>
-            <td>
-                <pre id="stateText"></pre>
-            </td>
-            <td>
-                <div id="roomStats"></div>
-            </td>
-        </tr>
-    </table>
+    <div id="groupmembers"></div>
+    <div id="pkCompetitor"></div>
+    <div id="roomStats"></div>
+    <div class="giftcontainer">
+        <!-- <h3 class="containerheader">Gifts</h3> -->
+    </div>
+    <hr>
+    <div class="chatcontainer">
+        <!-- <h3 class="containerheader">Chats</h3> -->
+    </div>
 
-    <table class="splitchattable">
-        <tr>
-            <td>
-                <div class="chatcontainer">
-                    <h3 class="containerheader">Chats</h3>
-                </div>
-            </td>
-            <td>
-                <div class="giftcontainer">
-                    <h3 class="containerheader">Gifts</h3>
-                </div>
-            </td>
-        </tr>
-    </table>
+    
 </body>
 </html>
