@@ -15,7 +15,8 @@ const app = express();
 const httpServer = createServer(app);
 let queue = [];
 let isProcessing = false;
-
+let updatingOrbUI = false;
+let isReady = false;
 // Setup puppeteer
 var browser
 var page
@@ -38,6 +39,7 @@ const delay = (time) => new Promise(resolve => setTimeout(resolve, time));
     await page.evaluate(input => input.value = '', inputs[1]);
     await inputs[1].type('0.07');
     await page.keyboard.press('Enter');
+    isReady = true;
     
     // (async () => {
     //     for (let clickCount = 0; clickCount < 85; clickCount++) {
@@ -66,21 +68,33 @@ const delay = (time) => new Promise(resolve => setTimeout(resolve, time));
     // })();
 })();
 
-updateOrbUI = async (value) => {
+async function updateOrbUI(value){
+    //while process is running wait for 2 second
+    if(!isReady) {
+        console.log('Page not ready, returning....');
+        return;
+    }
+    if(updatingOrbUI) {
+        console.log('Updating is in progress, skipping...');
+        return;
+    }
+    updatingOrbUI = true;
     // Check if the browser is closed
     if (browser && browser.isConnected()) {
         //delete inputs[1].text
         // await page.evaluate(input => input.value = '', inputs[1]);
-        let value = await page.evaluate(input => {
+        await page.evaluate(input => {
             const value = parseFloat(input.value);
             input.value = ''; 
-            return value;
         }, inputs[1]);
+        
+        console.log(`value: ${(value+0.07).toFixed(2)}`)
         await inputs[1].type(`${(value+0.07).toFixed(2)}`);
         await page.keyboard.press('Enter');
     } else {
         console.log('Browser is closed or not connected. Cannot update UI.');
     }
+    updatingOrbUI = false;
 }
 
 
@@ -332,20 +346,29 @@ io.on('connection', (socket) => {
             // Append the log entry to the existing file
             logGift(logEntry)
             //check if giftId 5655 repeatend = true and receiverUserInGroupLive not exsist increase tienkhi
-            if(msg.giftId === 5655 && msg.repeatCount === true && !msg.receiverUserInGroupLive) {
+            if(msg.giftId === 5655 && msg.repeatEnd === true && !msg.receiverUserInGroupLive) {
                 tienkhi += msg.repeatCount;
-                console.log('tienkhi', tienkhi);
-                updateOrbUI(tienkhi/12);
+                console.log('tienkhi hoahong', tienkhi);
+                updateOrbUI(tienkhi/1204);
             } 
             socket.emit('gift', msg)
         });
         tiktokConnectionWrapper.connection.on('social', msg => socket.emit('social', msg));
         tiktokConnectionWrapper.connection.on('like', msg => {
+            console.log('Like Event',msg.totalLikeCount, oldLikeCount);
             if(oldLikeCount){
-                tienkhi += Math.floor((msg.toTalLikeCount - oldLikeCount)/50);
-                console.log('tienkhi', tienkhi);
-                updateOrbUI(tienkhi/12);
-            }else oldLikeCount = msg.toTalLikeCount;
+                let increaseTienKhi = Math.floor((msg.totalLikeCount - oldLikeCount)/50);
+                if(increaseTienKhi > 0) {
+                    tienkhi += increaseTienKhi;
+                    console.log('tienkhi bam like', tienkhi);
+                    updateOrbUI(tienkhi/1204);
+                    oldLikeCount = msg.totalLikeCount;
+                }  
+            }else{
+                //first time get the like count
+                console.log('First time get the like count', msg.totalLikeCount);
+                oldLikeCount = msg.totalLikeCount;
+            }
             socket.emit('like', msg)
         });
         tiktokConnectionWrapper.connection.on('questionNew', msg => socket.emit('questionNew', msg));
@@ -437,6 +460,13 @@ io.on('connection', (socket) => {
             tiktokConnectionWrapper.disconnect();
         }
     });
+    socket.on('testing', (data) => {
+        console.log('testing', data);
+        tienkhi += parseInt(data);
+        if(tienkhi > 1000) tienkhi = 0;
+        console.log('tienkhi testing', tienkhi);
+        updateOrbUI(tienkhi/1204);
+    });
 });
 
 // Emit global connection statistics
@@ -448,6 +478,6 @@ setInterval(() => {
 app.use(express.static('public'));
 
 // Start http listener
-const port = process.env.PORT || 8081;
+const port = process.env.PORT || 8082;
 httpServer.listen(port);
 console.info(`Server running! Please visit http://localhost:${port}`);

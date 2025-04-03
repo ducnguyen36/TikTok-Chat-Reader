@@ -60,9 +60,9 @@ function connect() {
     let uniqueId = window.settings.username || $('#uniqueIdInput').val();
     let proxy = window.settings.proxy || false;
     if (uniqueId !== '') {
-
+    
         $('#stateText').text('Connecting...');
-
+        talents = [];
         connection.connect(uniqueId, proxy, {
             enableExtendedGiftInfo: true
             // processInitialData: false,
@@ -105,7 +105,7 @@ function connect() {
                 var $nickname = $('<div class="memberNickname"></div>').text(member.nickname);
                 // var $userId = $('<div class="memberId"></div>').text(member.userId);
                 var $score = $('<div class="memberScore"></div>').text(member.score);
-                var $input = $('<input type="text" onchange="manualUpdateScore(this)" class="memberInput" placeholder="Enter score">');
+                var $input = $('<input type="text" onchange="manualUpdateScore(this)" class="memberInput" placeholder="Enter score" value="0">');
                 $memberInfo.append($nickname, $score, $input);
                 
                 // Append the avatar and info to the container

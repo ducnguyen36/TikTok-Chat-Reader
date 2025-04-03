@@ -18,7 +18,7 @@ class TikTokIOConnection {
             // Reset flag khi mất kết nối để setUniqueId lại khi kết nối lại
             this.uniqueIdSet = false;
         });
-
+        
         this.socket.on('streamEnd', () => {
             console.warn("LIVE has ended!");
             this.uniqueId = null;
@@ -33,7 +33,10 @@ class TikTokIOConnection {
             }
         });
     }
-
+    testing(data){
+        console.info("testing", data);
+        this.socket.emit('testing', parseInt(data));
+    }
     connect(uniqueId, proxy=false, options) {
         this.uniqueId = uniqueId;
         this.options = options || {};
