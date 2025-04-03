@@ -76,7 +76,7 @@ updateOrbUI = async (value) => {
             input.value = ''; 
             return value;
         }, inputs[1]);
-        await inputs[1].type(`${value}`);
+        await inputs[1].type(`${(value+0.07).toFixed(2)}`);
         await page.keyboard.press('Enter');
     } else {
         console.log('Browser is closed or not connected. Cannot update UI.');
@@ -99,6 +99,8 @@ const io = new Server(httpServer, {
 
 var receiversDetails = [];
 var filePath = '';
+var tienkhi = 0;
+var oldLikeCount = 0;
 
 const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwNZ6sGPf5vw99dq05D4wOkSLGyyBP-fmi5sNMtgM6yS1OQRGB21l5Ay041edkeZysm/exec';
 
@@ -329,11 +331,23 @@ io.on('connection', (socket) => {
             console.log('JSON entry:', JSON.stringify(logEntry, null, 2));
             // Append the log entry to the existing file
             logGift(logEntry)
-            
+            //check if giftId 5655 repeatend = true and receiverUserInGroupLive not exsist increase tienkhi
+            if(msg.giftId === 5655 && msg.repeatCount === true && !msg.receiverUserInGroupLive) {
+                tienkhi += msg.repeatCount;
+                console.log('tienkhi', tienkhi);
+                updateOrbUI(tienkhi/12);
+            } 
             socket.emit('gift', msg)
         });
         tiktokConnectionWrapper.connection.on('social', msg => socket.emit('social', msg));
-        tiktokConnectionWrapper.connection.on('like', msg => socket.emit('like', msg));
+        tiktokConnectionWrapper.connection.on('like', msg => {
+            if(oldLikeCount){
+                tienkhi += Math.floor((msg.toTalLikeCount - oldLikeCount)/50);
+                console.log('tienkhi', tienkhi);
+                updateOrbUI(tienkhi/12);
+            }else oldLikeCount = msg.toTalLikeCount;
+            socket.emit('like', msg)
+        });
         tiktokConnectionWrapper.connection.on('questionNew', msg => socket.emit('questionNew', msg));
         tiktokConnectionWrapper.connection.on('linkMicBattle', msg => socket.emit('linkMicBattle', msg));
         tiktokConnectionWrapper.connection.on('linkMicArmies', msg => socket.emit('linkMicArmies', msg));
@@ -374,6 +388,9 @@ io.on('connection', (socket) => {
         uploadToAppsScript();
     });
     socket.on('initLogFile', (talents) => {
+        //tien khi
+        tienkhi = 0;
+
         console.info("initLogFile", talents);
         //check if folder exists or else create it
         //logDir will be logs/tyht/MMYY
