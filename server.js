@@ -8,13 +8,81 @@ const path = require('path');
 const request = require('request'); // For downloading images
 const { OBSWebSocket } = require('obs-websocket-js');
 const { TikTokConnectionWrapper, getGlobalConnectionCount } = require('./connectionWrapper');
+const puppeteer = require('puppeteer');
 const { clientBlocked } = require('./limiter');
-const { log } = require('console');
 
 const app = express();
 const httpServer = createServer(app);
 let queue = [];
 let isProcessing = false;
+
+// Setup puppeteer
+var browser
+var page
+var xPosition = 626;
+var inputs;
+const delay = (time) => new Promise(resolve => setTimeout(resolve, time));
+
+(async () => {
+    browser = await puppeteer.launch({ headless: false }); // Launch Puppeteer with visible browser
+    page = await browser.newPage(); // Open a new page
+    await page.goto('https://rct-ai.github.io/frontend-slides/diablo-health-orb-shader/#/2');
+    await delay(3000);
+    await page.click('#tab-4\\.VarianTs');
+    await delay(3000);
+    await page.click('.tp-rotv_t');
+    inputs = await page.$$('.tp-txtv_i');
+    
+    const intervalTime = 100; // 1 second interval
+    let clickCount = 1;
+    await page.evaluate(input => input.value = '', inputs[1]);
+    await inputs[1].type('0.07');
+    await page.keyboard.press('Enter');
+    
+    // (async () => {
+    //     for (let clickCount = 0; clickCount < 85; clickCount++) {
+    //         let value = await page.evaluate(input => {
+    //             const value = parseFloat(input.value);
+    //             input.value = ''; 
+    //             return value;
+    //         }, inputs[1]);
+        
+    //         console.log(`value: ${value}, clickCount: ${clickCount}`);
+        
+    //         await inputs[1].type(`${(value + 0.01).toFixed(2)}`);
+    //         await page.keyboard.press('Enter');
+    //         // Optional: Wait for a short delay to simulate interval behavior
+    //         await new Promise(resolve => setTimeout(resolve, intervalTime));
+    //         if(clickCount===84){
+    //             clickCount = 0;
+    //             await page.evaluate(input => input.value = '', inputs[1]);
+    //             await inputs[1].type('0.07');
+    //             await page.keyboard.press('Enter');
+    //             await new Promise(resolve => setTimeout(resolve, intervalTime));
+    //         }
+            
+    //         }
+    //     console.log('Finished');
+    // })();
+})();
+
+updateOrbUI = async (value) => {
+    // Check if the browser is closed
+    if (browser && browser.isConnected()) {
+        //delete inputs[1].text
+        // await page.evaluate(input => input.value = '', inputs[1]);
+        let value = await page.evaluate(input => {
+            const value = parseFloat(input.value);
+            input.value = ''; 
+            return value;
+        }, inputs[1]);
+        await inputs[1].type(`${value}`);
+        await page.keyboard.press('Enter');
+    } else {
+        console.log('Browser is closed or not connected. Cannot update UI.');
+    }
+}
+
 
 //use express to parse json
 app.use(express.json());
@@ -168,7 +236,7 @@ async function processQueue() {
             await fs.promises.writeFile(filePath, JSON.stringify(jsonData, null, 2), 'utf-8');
             resolve();
         } catch (error) {
-            if (err.code !== 'ENOENT') throw err; // Ignore "file not found" errors
+            if (error.code !== 'ENOENT') throw err; // Ignore "file not found" errors
             console.error(error);
             reject(error);
         }
