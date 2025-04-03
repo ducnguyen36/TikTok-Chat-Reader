@@ -57,7 +57,18 @@ class TikTokIOConnection {
         this.uniqueIdSet = true; // đánh dấu đã gửi uniqueId
         this.socket.emit('setUniqueId', this.uniqueId, this.options, this.proxy);
     }
-
+    initLogFile(talents){
+        console.info("initLogFile", talents);
+        this.socket.emit('initLogFile', talents);
+    }
+    updateLogFile(data,talents){
+        console.info("updateLogFile", data, talents);
+        this.socket.emit('updateLogFile', data, talents);
+    }
+    uploadLogFile(){
+        console.info("uploadLogFile");
+        this.socket.emit('uploadLogFile');
+    }
     on(eventName, eventHandler) {
         this.socket.on(eventName, eventHandler);
     }

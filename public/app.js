@@ -10,6 +10,7 @@ let diamondsCount = 0;
 let scoreTemp = [];
 var talents =[];
 let roomState;
+let receiversDetailsManual = [];
 //create obs instance
 const obs = new OBSWebSocket();
 
@@ -104,13 +105,24 @@ function connect() {
                 var $nickname = $('<div class="memberNickname"></div>').text(member.nickname);
                 // var $userId = $('<div class="memberId"></div>').text(member.userId);
                 var $score = $('<div class="memberScore"></div>').text(member.score);
-                $memberInfo.append($nickname, $score);
+                var $input = $('<input type="text" onchange="manualUpdateScore(this)" class="memberInput" placeholder="Enter score">');
+                $memberInfo.append($nickname, $score, $input);
                 
                 // Append the avatar and info to the container
                 $memberContainer.append($memberAvatar, $memberInfo);
                 
                 // Append the member container to the groupmembers container
                 $groupMembers.append($memberContainer);
+              });
+              //emit event to server to init the log file
+              connection.initLogFile(talents);
+
+              //generate default receiversDetails
+              receiversDetailsManual = talents.map(talent => {
+                const clonedTalent = structuredClone(talent); // Deep copy
+                delete clonedTalent.score;
+                clonedTalent.receiveDiamond = 0;
+                return clonedTalent;
               });
             }
             
@@ -500,13 +512,25 @@ connection.on('liveMember', (msg) => {
         var $nickname = $('<div class="memberNickname"></div>').text(member.nickname);
         // var $userId = $('<div class="memberId"></div>').text(member.userId);
         var $score = $('<div class="memberScore"></div>').text(member.score);
-        $memberInfo.append($nickname, $score);
+        var $input = $('<input class="manualScore" type="text" onchange="manualUpdateScore(this)" class="memberInput" placeholder="Enter score">');
+        $memberInfo.append($nickname, $score, $input);
         
         // Append the avatar and info to the container
         $memberContainer.append($memberAvatar, $memberInfo);
         
         // Append the member container to the groupmembers container
         $groupMembers.append($memberContainer);
+
+        //emit event to server to init the log file
+        connection.initLogFile(talents);
+        
+        //generate default receiversDetails
+        receiversDetailsManual = talents.map(talent => {
+          const clonedTalent = structuredClone(talent); // Deep copy
+          delete clonedTalent.score;
+          clonedTalent.receiveDiamond = 0;
+          return clonedTalent;
+        });
       });
     }
     
@@ -759,6 +783,7 @@ connection.on('gift', (data) => {
   }
 
   if (window.settings.showGifts === "0") return;
+  if (!talents[0].isHost) return;
   addGiftItem(data);
 
   // --- Trigger OBS video for the correct team in gift event ---
@@ -789,23 +814,6 @@ connection.on('gift', (data) => {
     }
   }
 });
-
-// function updateOBSImages() {
-//   const team1 = initCompetitionData.initCompetition.memberInitCompetition.memberInitCompetitionDetails[0].competitor;
-//   const team2 = initCompetitionData.initCompetition.memberInitCompetition.memberInitCompetitionDetails[1].competitor;
-
-//   // Select the highest quality image URL
-//   const team1Image = team1.profilePicture.urls[0];
-//   const team2Image = team2.profilePicture.urls[0];
-
-//   // Update OBS image sources and make them visible
-//   updateOBSImageSource('team1', team1Image);
-//   updateOBSImageSource('team2', team2Image);
-
-//   // Make both images visible
-//   setOBSVisibility('team1', true);
-//   setOBSVisibility('team2', true);
-// }
 
 function updateOBSImages(competitor1,competitor2) {
   //debug with consolelog

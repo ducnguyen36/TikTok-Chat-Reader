@@ -13,7 +13,7 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"  crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.4.1/socket.io.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-    <script src="https://unpkg.com/obs-websocket-js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/obs-websocket-js"></script>
 
 
     <script src="connection.js"></script>
@@ -22,6 +22,31 @@
     <script>
         window.settings = Object.fromEntries(new URLSearchParams(location.search));
         // window.settings = {username: 'kxg.acespace'}
+        function manualUpdateScore(input){
+            console.log('onchange input', input)
+            let score = 0;
+            if(parseInt(input.value) === 'NaN'){
+                console.log('not a number', input.value);
+                input.value = receiversDetails.find(t => t.nickname === input.previousElementSibling.previousElementSibling.innerText).receiveDiamond;
+                return;
+            } else score = parseInt(input.value);
+            receiversDetailsManual.map(t => {
+                if(t.nickname === input.previousElementSibling.previousElementSibling.innerText)
+                    t.receiveDiamond = score;
+            })
+            //update talent score and UI
+            let talent = talents.find(t => t.nickname === input.previousElementSibling.previousElementSibling.innerText);
+            talent.score += score;
+            input.previousElementSibling.innerText = talent.score;
+            console.log('receiversDetailsManual',receiversDetailsManual);
+            //update RoomStats
+            updateRoomStats();
+            connection.updateLogFile({
+                msgId: 'manual',
+                timestamp: Number(Date.now()),
+            }, receiversDetailsManual);
+        }
+        
         function updateLog(button){
             if(button.classList.contains('active')) return;
             const dataInfo = button.getAttribute('data-info');
@@ -59,56 +84,14 @@
             //update UI score
             $('#groupmembers .memberContainer[data-userid="' + talent.userId + '"] .memberScore')
                 .text(talent.score);
-            
-            //calculate score and update talent score UI
-            
-            // const talent = button.innerText === 'None'?'':button.innerText;
-            // if(talent === 'Score'){
-            //     console.log(talent)
-            //     connection.log(data,talent);
-            //     return;
-            // }
-            // console.log(data,talent);
-            // let text = button.parentElement.previousElementSibling.previousElementSibling;
-            // const talentRegex = /to <b>(.*?)<\/b>/;
-            // const match = text.innerHTML.match(talentRegex);
-            // let oldTalent = match ? match[1] : null; // Extract the first capturing group or null if no match
-            // console.log('old Talent',oldTalent);
-            // if(talent){
-            //     if(talentRegex.test(text.innerHTML)){
-            //         text.innerHTML = text.innerHTML.replace(talentRegex,`to <b>${talent}</b>`);
-            //     }else{
-            //         text.innerHTML += `to <b>${talent}</b>`;
-            //     }
-            // }else {
-            //     text.innerHTML = text.innerHTML.replace(talentRegex,'');
-            // }
-            // if(battleing){
-                
-            //     let score = data.diamondCount * data.repeatCount, scoreLeft = scoreRight = 0;
-            //     if(talent === teamLeft) scoreLeft = score;
-            //     else if(talent === teamRight) scoreRight = score;
-            //     if(oldTalent === teamLeft) scoreLeft = scoreLeft - score;
-            //     else if(oldTalent === teamRight) scoreRight = scoreRight - score;
-            //     if(scoreLeft || scoreRight) connection.updateScore(scoreLeft, scoreRight);
-            // }
-            // connection.log(data,talent);
-            // const parent = button.parentNode; // Get the parent container of the buttons
-            // const siblingButtons = parent.querySelectorAll('button'); // Find all sibling buttons within the parent
-
-            // // Remove the 'active' state from all sibling buttons
-            // siblingButtons.forEach(btn => {
-            //     btn.style.backgroundColor = ''; // Reset background color
-            //     btn.style.color = ''; // Reset text color
-            //     btn.style.fontWeight = ''; // Reset font weight
-            // });
-
-            // if (button.innerText !== 'None') {
-            //     // Apply active styles only if the button is not "None"
-            //     button.style.backgroundColor = '#d4a1f5'; // Light pastel purple background
-            //     button.style.color = 'white'; // White text color
-            //     button.style.fontWeight = 'bold'; // Bold text
-            // }
+            let receiversDetails = talents.map(t => {
+                delete t.score;
+                t.receiveDiamond = (talent.userId === t.userId)?score:0;
+                return t;
+            })
+            console.log('receiversDetails',receiversDetails);
+            connection.updateLogFile(data,receiversDetails);
+           
         }
         
     </script>
@@ -123,7 +106,7 @@
         <label>Username: </label>
         <input type="text" id="uniqueIdInput" placeholder="Enter username">
         <input type="button" id="connectButton" value="connect">
-        <input type="button" id="disconnectButton" value="disconnect">
+        <input type="button" id="uploadButton" value="upload" onclick="connection.uploadLogFile()">
     </div>
     <div id="groupmembers"></div>
     <div id="pkCompetitor"></div>
