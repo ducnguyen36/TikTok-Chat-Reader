@@ -71,7 +71,7 @@
                     btn.classList.remove('active');
                     previousTalent = talents.find(t => t.nickname === btn.innerText);
                     //update score previous talent
-                    previousTalent.score -= score;
+                    previousTalent.score -= parseInt(score);
                     //update UI score previous talent
                     $('#groupmembers .memberContainer[data-userid="' + previousTalent.userId + '"] .memberScore')
                         .text(previousTalent.score);
@@ -80,7 +80,7 @@
             //add active class to the clicked button
             button.classList.add('active');
             //update score
-            talent.score += score;
+            talent.score += parseInt(score);
             //update UI score
             $('#groupmembers .memberContainer[data-userid="' + talent.userId + '"] .memberScore')
                 .text(talent.score);
