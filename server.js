@@ -14,6 +14,7 @@ const { clientBlocked } = require('./limiter');
 const app = express();
 const httpServer = createServer(app);
 let queue = [];
+let giftQueue = [];
 let isProcessing = false;
 let updatingOrbUI = false;
 let isReady = false;
@@ -221,45 +222,120 @@ async function connectToOBS() {
         console.error('Failed to connect to OBS WebSocket:', error);
     }
 }
-async function logGift(logEntry) {
+// async function logGift(logEntry) {
+//     return new Promise((resolve, reject) => {
+//         queue.push({ logEntry, resolve, reject });
+//         if(!isProcessing) processQueue();
+//     });
+// }
+function logGift(logEntry) {
     return new Promise((resolve, reject) => {
-        queue.push({ logEntry, resolve, reject });
-        if(!isProcessing) processQueue();
+        // Check for existing entry in giftQueue
+        const existing = giftQueue.find(item => item.logEntry.msgId === logEntry.msgId);
+        
+        if (existing) {
+            // Update receiversDetails and optionally timestamp
+            existing.logEntry.receiversDetails = logEntry.receiversDetails;
+
+            if (existing.logEntry.msgId === 'manual') {
+                existing.logEntry.timestamp = logEntry.timestamp;
+            }
+
+            resolve(); // Consider it done for now — it'll be written during batch
+        } else {
+            // New entry, push to queue
+            giftQueue.push({ logEntry, resolve, reject });
+        }
     });
 }
+
+setInterval(() => {
+    if (!isProcessing && giftQueue.length > 0) {
+        processQueue();
+    }
+}, 5000);
+
 async function processQueue() {
     isProcessing = true;
 
-    while (queue.length > 0) {
-        const { logEntry, resolve, reject } = queue.shift();
+    try {
+        let jsonData = [];
 
+        // Try reading the file (if it exists)
         try {
             const data = await fs.promises.readFile(filePath, 'utf-8');
-            let jsonData = JSON.parse(data);
-            //find msgId in jsonData match logEntry.msgId
-            const existingEntry = jsonData.find(entry => entry.msgId === logEntry.msgId);
-            if (existingEntry) {
-                //update receiversDetails
-                existingEntry.receiversDetails = logEntry.receiversDetails
-                if(existingEntry.msgId === 'manual') {
-                    existingEntry.timestamp = logEntry.timestamp;
-                }
-            }else{
-                // Add the new log entry to the JSON data
-                jsonData.push(logEntry);
+            jsonData = JSON.parse(data);
+        } catch (err) {
+            if (err.code !== 'ENOENT') {
+                console.error('Error reading file:', err);
+                return;
             }
-            // Write the updated JSON data back to the file
-            await fs.promises.writeFile(filePath, JSON.stringify(jsonData, null, 2), 'utf-8');
-            resolve();
-        } catch (error) {
-            if (error.code !== 'ENOENT') throw err; // Ignore "file not found" errors
-            console.error(error);
-            reject(error);
         }
+
+        // Process entries in the queue
+        while (giftQueue.length > 0) {
+            const { logEntry, resolve, reject } = giftQueue.shift();
+
+            try {
+                const existingEntry = jsonData.find(entry => entry.msgId === logEntry.msgId);
+                if (existingEntry) {
+                    existingEntry.receiversDetails = logEntry.receiversDetails;
+                    if (existingEntry.msgId === 'manual') {
+                        existingEntry.timestamp = logEntry.timestamp;
+                    }
+                } else {
+                    jsonData.push(logEntry);
+                }
+
+                resolve();
+            } catch (err) {
+                console.error('Error processing log entry:', err);
+                reject(err);
+            }
+        }
+
+        // Write once after processing all
+        await fs.promises.writeFile(filePath, JSON.stringify(jsonData, null, 2), 'utf-8');
+    } catch (error) {
+        console.error('Error during batch processing:', error);
     }
 
     isProcessing = false;
 }
+
+// async function processQueue() {
+//     isProcessing = true;
+
+//     while (queue.length > 0) {
+//         const { logEntry, resolve, reject } = queue.shift();
+
+//         try {
+//             const data = await fs.promises.readFile(filePath, 'utf-8');
+//             let jsonData = JSON.parse(data);
+//             //find msgId in jsonData match logEntry.msgId
+//             const existingEntry = jsonData.find(entry => entry.msgId === logEntry.msgId);
+//             if (existingEntry) {
+//                 //update receiversDetails
+//                 existingEntry.receiversDetails = logEntry.receiversDetails
+//                 if(existingEntry.msgId === 'manual') {
+//                     existingEntry.timestamp = logEntry.timestamp;
+//                 }
+//             }else{
+//                 // Add the new log entry to the JSON data
+//                 jsonData.push(logEntry);
+//             }
+//             // Write the updated JSON data back to the file
+//             await fs.promises.writeFile(filePath, JSON.stringify(jsonData, null, 2), 'utf-8');
+//             resolve();
+//         } catch (error) {
+//             if (error.code !== 'ENOENT') throw err; // Ignore "file not found" errors
+//             console.error(error);
+//             reject(error);
+//         }
+//     }
+
+//     isProcessing = false;
+// }
 
 io.on('connection', (socket) => {
     let tiktokConnectionWrapper;
@@ -381,7 +457,11 @@ io.on('connection', (socket) => {
         tiktokConnectionWrapper.connection.on('liveMember', msg => socket.emit('liveMember', msg));
         tiktokConnectionWrapper.connection.on('competition', msg => socket.emit('competition', msg));   
     });
-
+    socket.on('uploadLogFile', () => {
+        console.info('uploadLogFile', filePath);
+        //upload the file to apps script
+        uploadToAppsScript();
+    });
     socket.on('updateLogFile', (data, receiversDetails) => {
         
         let logEntry = {
@@ -405,11 +485,7 @@ io.on('connection', (socket) => {
         console.log('JSON entry:', JSON.stringify(logEntry, null, 2));
         logGift(logEntry)
     })
-    socket.on('uploadLogFile', () => {
-        console.info('uploadLogFile', filePath);
-        //upload the file to apps script
-        uploadToAppsScript();
-    });
+    
     socket.on('initLogFile', (talents) => {
         //tien khi
         tienkhi = 0;
@@ -442,7 +518,7 @@ io.on('connection', (socket) => {
             uniqueId: 'manual',
             msgId: 'manual',
             repeatCount: 0,
-            diamondsCount: 0,
+            diamondCount: 0,
             diamondsTotal: 0,
             timestamp: Number(now),
             receiversDetails
