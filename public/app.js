@@ -10,7 +10,7 @@ let diamondsCount = 0;
 let scoreTemp = [];
 var talents =[];
 let roomState;
-let receiversDetailsManual = [];
+// let receiversDetailsManual = [];
 //create obs instance
 const obs = new OBSWebSocket();
 
@@ -72,7 +72,7 @@ function connect() {
             roomState = state;
             $('h1').text(`HT - ${roomState.roomInfo.owner.nickname.toUpperCase()}`);
             // Adding the whole group as a member
-            if(talents.length && !talents[0].isHost){
+            if(talents.length && (!talents[0].isHost || talents[0].uniqueId !== uniqueId)){
               talents.unshift({
                 userId: roomState.roomId,
                 uniqueId: roomState.roomInfo.owner.display_id,
@@ -81,6 +81,7 @@ function connect() {
                   urls: roomState.roomInfo.cover.url_list
                 },
                 score: 0,
+                receiveDiamond: 0,
                 isHost: true    
               });
               console.log('Members with Group', talents);
@@ -104,7 +105,7 @@ function connect() {
                 var $memberInfo = $('<div class="memberInfo"></div>');
                 var $nickname = $('<div class="memberNickname"></div>').text(member.nickname);
                 // var $userId = $('<div class="memberId"></div>').text(member.userId);
-                var $score = $('<div class="memberScore"></div>').text(member.score);
+                var $score = $('<div class="memberScore"></div>').text(member.score+member.receiveDiamond);
                 var $input = $('<input type="text" onchange="manualUpdateScore(this)" class="memberInput" placeholder="Enter score" value="0">');
                 $memberInfo.append($nickname, $score, $input);
                 
@@ -118,12 +119,12 @@ function connect() {
               connection.initLogFile(talents);
 
               //generate default receiversDetails
-              receiversDetailsManual = talents.map(talent => {
-                const clonedTalent = structuredClone(talent); // Deep copy
-                delete clonedTalent.score;
-                clonedTalent.receiveDiamond = 0;
-                return clonedTalent;
-              });
+              // receiversDetailsManual = talents.map(talent => {
+              //   const clonedTalent = structuredClone(talent); // Deep copy
+              //   delete clonedTalent.score;
+              //   clonedTalent.receiveDiamond = 0;
+              //   return clonedTalent;
+              // });
             }
             
             // reset stats
@@ -155,7 +156,7 @@ function sanitize(text) {
 }
 
 function updateRoomStats() {
-    $('#roomStats').html(`👀: <b>${viewerCount.toLocaleString()}</b> 💓: <b>${likeCount.toLocaleString()}</b> 🪙: <b>${diamondsCount.toLocaleString()}</b> 💻: <b>${talents.reduce((sum, member) => sum + member.score, 0)}</b>`)
+    $('#roomStats').html(`👀: <b>${viewerCount.toLocaleString()}</b> 💓: <b>${likeCount.toLocaleString()}</b> 🪙: <b>${diamondsCount.toLocaleString()}</b> 💻: <b>${talents.reduce((sum, member) => sum + member.score + member.receiveDiamond, 0)}</b>`)
 }
 
 function generateUsernameLink(data) {
@@ -229,8 +230,8 @@ function addGiftItem(data) {
                 <span>
                   ${data.describe}
                   <img class="gifticon" src="${data.giftPictureUrl}">
-                  <b style="${isPendingStreak(data) ? 'color:red' : ''}">x${data.repeatCount.toLocaleString()}</b>
-                  (<b>${(data.diamondCount * data.repeatCount).toLocaleString()} 🪙</b> - ${data.giftId}) to
+                  <b style="${isPendingStreak(data) ? 'color:red' : ''}">x${data.repeatCount}</b>
+                  (<b>${(data.diamondCount * data.repeatCount)} 🪙</b> - ${data.giftId}) to
                   <b>${data.receiverUserDetails ? `
                     ${generateUsernameLink(data.receiverUserDetails)}
                   ` : `
@@ -468,11 +469,14 @@ connection.on('competition', (msg) => {
 connection.on('liveMember', (msg) => {
   if(talents.length > 1) return;
   if(talents.length === 1 && !talents[0].isHost) return;
+  if(talents[0]?.isHost && talents[0]?.uniqueId === $('#uniqueIdInput').val())
+    talents = [];
     // console.log('window href:',window.location.href);
     // if(!window.location.href.includes('index.html')) return;
     // console.log('Event LIVE group member', msg);
     talents = msg.liveMembers.map(function(member) {
         member.score = 0; // Default score; adjust logic as needed
+        member.receiveDiamond = 0; // Default receiveDiamond; adjust logic as needed
         return member;
       });
     console.log('group member before avatar', talents);
@@ -488,6 +492,7 @@ connection.on('liveMember', (msg) => {
           urls: roomState.roomInfo.cover.url_list
         },
         score: 0,
+        receiveDiamond: 0,
         isHost: true    
       });
       console.log('Members with Group', talents);
@@ -511,7 +516,7 @@ connection.on('liveMember', (msg) => {
         var $memberInfo = $('<div class="memberInfo"></div>');
         var $nickname = $('<div class="memberNickname"></div>').text(member.nickname);
         // var $userId = $('<div class="memberId"></div>').text(member.userId);
-        var $score = $('<div class="memberScore"></div>').text(member.score);
+        var $score = $('<div class="memberScore"></div>').text(member.score + member.receiveDiamond);
         var $input = $('<input class="manualScore" type="text" onchange="manualUpdateScore(this)" class="memberInput" placeholder="Enter score">');
         $memberInfo.append($nickname, $score, $input);
         
@@ -525,12 +530,12 @@ connection.on('liveMember', (msg) => {
         connection.initLogFile(talents);
         
         //generate default receiversDetails
-        receiversDetailsManual = talents.map(talent => {
-          const clonedTalent = structuredClone(talent); // Deep copy
-          delete clonedTalent.score;
-          clonedTalent.receiveDiamond = 0;
-          return clonedTalent;
-        });
+        // receiversDetailsManual = talents.map(talent => {
+        //   const clonedTalent = structuredClone(talent); // Deep copy
+        //   delete clonedTalent.score;
+        //   clonedTalent.receiveDiamond = 0;
+        //   return clonedTalent;
+        // });
       });
     }
     
@@ -693,12 +698,12 @@ function updateTalentScore(giftData, calculatedScore) {
 
       // Update the UI with the new score
       $('#groupmembers .memberContainer[data-userid="' + talent.userId + '"] .memberScore')
-          .text(talent.score);
+          .text(talent.score+talent.receiveDiamond);
   } else {
       //Added the score to talents[0]
       talents[0].score += calculatedScore;
       $('#groupmembers .memberContainer[data-userid="' + talents[0].userId + '"] .memberScore')
-          .text(talents[0].score);
+          .text(talents[0].score+talents[0].receiveDiamond);
   }
 }
 //  var initCompetitionData = {

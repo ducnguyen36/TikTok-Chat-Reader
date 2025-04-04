@@ -18,6 +18,7 @@ let giftQueue = [];
 let isProcessing = false;
 let updatingOrbUI = false;
 let isReady = false;
+let uploadInterval = null;
 // Setup puppeteer
 var browser
 var page
@@ -153,8 +154,7 @@ async function uploadToAppsScript() {
     }
 }
 
-// Run every 5 minutes
-setInterval(uploadToAppsScript, 5 * 60 * 1000);
+
 
 
 // API route to save member avatars
@@ -463,7 +463,9 @@ io.on('connection', (socket) => {
         uploadToAppsScript();
     });
     socket.on('updateLogFile', (data, receiversDetails) => {
-        
+        receiversDetails = receiversDetails.map(receiver => {
+            delete receiver.score;
+        })
         let logEntry = {
             giftId: data.giftId || 0,
             repeatCount: data.repeatCount || 0,
@@ -527,8 +529,17 @@ io.on('connection', (socket) => {
         //create the file
         fs.writeFileSync(filePath, JSON.stringify(logEntry, null, 2), 'utf-8');
         console.log('Log file created:', filePath);
+        // Run every 5 minutes
+        uploadInterval = setInterval(uploadToAppsScript, 5 * 60 * 1000);
     });
     socket.on('disconnect', () => {
+        //remove uploadInterval
+        if(uploadInterval) {
+            clearInterval(uploadInterval);
+            uploadInterval = null;
+        }
+        console.info('Client disconnected, stopping upload interval');
+        //final upload to apps script
         uploadToAppsScript();
         console.info('Client disconnected');
         // Disconnect the TikTok connection wrapper if it exists

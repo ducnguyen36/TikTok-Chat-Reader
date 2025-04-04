@@ -24,27 +24,28 @@
         // window.settings = {username: 'kxg.acespace'}
         function manualUpdateScore(input){
             console.log('onchange input', input)
-            let score = 0;
-            if(parseInt(input.value) === 'NaN'){
+            let score = parseInt(input.value);
+            if(score === 'NaN'){
                 console.log('not a number', input.value);
-                input.value = receiversDetails.find(t => t.nickname === input.previousElementSibling.previousElementSibling.innerText).receiveDiamond;
+                input.value = talents.find(talent => talent.nickname === input.previousElementSibling.previousElementSibling.innerText).receiveDiamond; 
                 return;
-            } else score = parseInt(input.value);
-            receiversDetailsManual.map(t => {
-                if(t.nickname === input.previousElementSibling.previousElementSibling.innerText)
-                    t.receiveDiamond = score;
-            })
+            }
             //update talent score and UI
             let talent = talents.find(t => t.nickname === input.previousElementSibling.previousElementSibling.innerText);
-            talent.score += score;
-            input.previousElementSibling.innerText = talent.score;
-            console.log('receiversDetailsManual',receiversDetailsManual);
+            talent.receiveDiamond = score;
+            input.previousElementSibling.innerText = talent.score + talent.receiveDiamond;
             //update RoomStats
             updateRoomStats();
+            
+            // receiversDetailsManual.map(t => {
+            //     if(t.nickname === input.previousElementSibling.previousElementSibling.innerText)
+            //         t.receiveDiamond = score;
+            // })
+            // console.log('receiversDetailsManual',receiversDetailsManual);
             connection.updateLogFile({
                 msgId: 'manual',
                 timestamp: Number(Date.now()),
-            }, receiversDetailsManual);
+            }, talents);
         }
         
         function updateLog(button){
@@ -74,7 +75,7 @@
                     previousTalent.score -= parseInt(score);
                     //update UI score previous talent
                     $('#groupmembers .memberContainer[data-userid="' + previousTalent.userId + '"] .memberScore')
-                        .text(previousTalent.score);
+                        .text(previousTalent.score+previousTalent.receiveDiamond);
                 }
             });
             //add active class to the clicked button
@@ -83,14 +84,14 @@
             talent.score += parseInt(score);
             //update UI score
             $('#groupmembers .memberContainer[data-userid="' + talent.userId + '"] .memberScore')
-                .text(talent.score);
+                .text(talent.score+talent.receiveDiamond);
             // let receiversDetails = talents.map(t => {
             //     delete t.score;
             //     t.receiveDiamond = (talent.userId === t.userId)?score:0;
             //     return t;
             // })
-            let receiversDetails = talents.map(talent => {
-                const clonedTalent = structuredClone(talent); // Deep copy
+            let receiversDetails = talents.map(t => {
+                const clonedTalent = structuredClone(t); // Deep copy
                 delete clonedTalent.score;
                 clonedTalent.receiveDiamond = (talent.userId === t.userId)?score:0;
                 return clonedTalent;
