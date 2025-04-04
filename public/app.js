@@ -875,7 +875,7 @@ async function updateOBSImageSource(sourceName, imageUrl) {
     inputSettings: { file: imageUrl }
   }).catch(err => console.error(`Failed to update ${sourceName}:`, err));
 }
-const sceneName = 'tyht'
+const sceneName = 'Scene'
 /**
 * Makes an OBS source visible or hidden.
 * @param {string} sourceName - The name of the OBS source.
