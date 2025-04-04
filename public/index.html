@@ -84,11 +84,17 @@
             //update UI score
             $('#groupmembers .memberContainer[data-userid="' + talent.userId + '"] .memberScore')
                 .text(talent.score);
-            let receiversDetails = talents.map(t => {
-                delete t.score;
-                t.receiveDiamond = (talent.userId === t.userId)?score:0;
-                return t;
-            })
+            // let receiversDetails = talents.map(t => {
+            //     delete t.score;
+            //     t.receiveDiamond = (talent.userId === t.userId)?score:0;
+            //     return t;
+            // })
+            let receiversDetails = talents.map(talent => {
+                const clonedTalent = structuredClone(talent); // Deep copy
+                delete clonedTalent.score;
+                clonedTalent.receiveDiamond = (talent.userId === t.userId)?score:0;
+                return clonedTalent;
+              });
             console.log('receiversDetails',receiversDetails);
             connection.updateLogFile(data,receiversDetails);
            
