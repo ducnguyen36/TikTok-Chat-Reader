@@ -803,11 +803,11 @@ connection.on('gift', (data) => {
     if (targetTeam) {
       // Determine the skill level based on diamondCount
       let skill = "";
-      if (data.diamondCount >= 10 && data.diamondCount <= 98) {
+      if (data.diamondCount >= 1 && data.diamondCount <= 9) {
         skill = "skill1";
-      } else if (data.diamondCount >= 99 && data.diamondCount <= 4999) {
+      } else if (data.diamondCount >= 10 && data.diamondCount <= 98) {
         skill = "skill2";
-      } else if (data.diamondCount >= 5000) {
+      } else if (data.diamondCount >= 99) {
         skill = "skill3";
       }
       
