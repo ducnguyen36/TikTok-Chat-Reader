@@ -462,6 +462,13 @@ connection.on('competition', (msg) => {
         team1 = team2 = null; // Reset teams for next competition
         setOBSVisibility('team1', false);
         setOBSVisibility('team2', false);
+        //set video KO true
+        setOBSVisibility('KO', true);
+        //after 3 seconds set video KO false
+        setTimeout(() => {
+          setOBSVisibility('KO', false);
+        }, 3000);
+
       }
     }
   });
@@ -807,8 +814,12 @@ connection.on('gift', (data) => {
         skill = "skill1";
       } else if (data.diamondCount >= 10 && data.diamondCount <= 98) {
         skill = "skill2";
-      } else if (data.diamondCount >= 99) {
+      } else if (data.diamondCount >= 99 && data.diamondCount <= 498) {
         skill = "skill3";
+      } else if (data.diamondCount >= 499 && data.diamondCount <= 1499) {
+        skill = "skill4";
+      } else if (data.diamondCount >= 1500) {
+        skill = "skill5";
       }
       
       // Construct the OBS source name accordingly.
@@ -862,6 +873,17 @@ function updateOBSImages(competitor1,competitor2) {
   // Make both images visible
   setOBSVisibility('team1', true);
   setOBSVisibility('team2', true);
+  setOBSVisibility('fight', true);
+
+  //after 1.5 seconds hide the images
+  setTimeout(() => {
+    setOBSVisibility('team1', false);
+    setOBSVisibility('team2', false);
+  }, 1500);
+  //after 4 seconds hide the fight image
+  setTimeout(() => {
+    setOBSVisibility('fight', false);
+  }, 4000);
 }
 
 /**
