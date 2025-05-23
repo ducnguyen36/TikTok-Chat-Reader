@@ -28,9 +28,9 @@
       }
 
       #container {
-         position:relative;
-         width: 210px;
-         height:735px;
+         position: relative;
+         width: 223px;
+         /* height: 735px; */
          /* height: 800px; */
          overflow: hidden;
          /* border: 1px solid #ccc; */
@@ -43,7 +43,7 @@
       .title {
          font-size: 1em;
          margin-bottom: 12px;
-         margin-left: 12px;
+         margin-left: 18px;
          color: #b3b3b3;
          font-weight: 200;
       }
@@ -60,11 +60,11 @@
 
       .row {
          display: grid;
-         grid-template-columns: 37px 93px 70px;
+         grid-template-columns: 37px 93px 85px;
          position: absolute;
          left: 0;
          right: 0;
-         transition: top var(--transition-duration);
+         transition: transform var(--transition-duration);
          height: var(--row-height);
          overflow: hidden;
       }
@@ -121,6 +121,7 @@
          bottom: 3px;
          width: 24px;
          height: 24px;
+         visibility: hidden;
          overflow: hidden;
       }
 
@@ -134,14 +135,17 @@
 
       /* top-row: gold at 0px, silver at -24px, bronze at -48px */
       .crown.gold img {
+         visibility: visible;
          object-position: 0 0;
       }
 
       .crown.silver img {
+         visibility: visible;
          object-position: -24px 0;
       }
 
       .crown.bronze img {
+         visibility: visible;
          object-position: -48px 0;
       }
 
@@ -175,97 +179,76 @@
          name: name,
          score: Math.floor(Math.random() * 1000000)
       }));
+      const grid = document.getElementById('rankingGrid');
+      const container = document.getElementById('container');
+      // calculate grid height
+      const gridHeight = (data.length-1) * parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--row-height'))
+         + parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--last-row-height'))
+         + document.querySelector('.title').offsetHeight + parseFloat(getComputedStyle(document.querySelector('.title')).marginBottom) + 1;      
+      // set container height
+      container.style.height = gridHeight + 'px';
 
+      // Initialize rows
+      data.forEach(item => {
+         const row = document.createElement('div');
+         row.className = 'row';
+         row.dataset.name = item.name;
+         // rank number
+         const rankCell = document.createElement('div');
+         rankCell.className = 'cell';
+         const num = document.createElement('div');
+         num.className = 'rank-number';
+         rankCell.appendChild(num);
+         row.appendChild(rankCell);
+         // name cell
+         const nameCell = document.createElement('div');
+         nameCell.className = 'cell name';
+         const marqueeElement = document.createElement('div');
+         marqueeElement.className = 'marquee';
+         const span1 = document.createElement('span');
+         span1.textContent = item.name;
+         const span2 = document.createElement('span');
+         span2.textContent = item.name;
+         marqueeElement.appendChild(span1);
+         marqueeElement.appendChild(span2);
+         nameCell.appendChild(marqueeElement);
+         row.appendChild(nameCell);
+         // score cell
+         const scoreCell = document.createElement('div');
+         scoreCell.className = 'cell score';
+         row.appendChild(scoreCell);
+
+         // crown container
+         const crown = document.createElement('div');
+         crown.className = 'crown';
+         const img = document.createElement('img');
+         img.src = crownSrc;
+         img.alt = 'Crown';
+         crown.appendChild(img);
+         rankCell.appendChild(crown);
+
+         grid.appendChild(row);
+      });
 
       function renderGrid() {
          //sort data by score
          data.sort((a, b) => b.score - a.score);
-         const grid = document.getElementById('rankingGrid');
+         const rows = Array.from(grid.children);
 
-         // store old positions
-         const oldPositions = {};
-         grid.querySelectorAll('.row').forEach(row => {
-            const key = row.dataset.name;
-            oldPositions[key] = row.getBoundingClientRect().top;
-         });
-
-         //clear and recreate rows
-         grid.innerHTML = '';
          data.forEach((item, index) => {
-            const isLast = index === data.length - 1;
-            const row = document.createElement('div');
-            row.className = 'row' + (isLast ? ' last' : '');
-            row.dataset.name = item.name;
-            // cell: rank
-            const rankCell = document.createElement('div');
-            rankCell.className = 'cell';
-            const num = document.createElement('div');
-            num.className = 'rank-number';
-            num.textContent = index + 1;
-            rankCell.appendChild(num);
-
-            if (index < 3) {
-               const crown = document.createElement('div');
-               crown.className = `crown ${index === 0 ? 'gold' : index === 1 ? 'silver' : 'bronze'}`;
-               const img = document.createElement('img');
-               img.src = crownSrc;
-               img.alt = 'Crown';
-               crown.appendChild(img);
-               rankCell.appendChild(crown);
-            }
-            row.appendChild(rankCell);
-            // cell: name
-            const nameCell = document.createElement('div');
-            nameCell.className = 'cell name';
-            // if (item.name.length > 10) { const mq = document.createElement('div'); mq.className = 'marquee';['', ''].forEach(_ => { const sp = document.createElement('span'); sp.textContent = item.name; mq.appendChild(sp); }); nameCell.appendChild(mq); } else nameCell.textContent = item.name;
-            // row.appendChild(nameCell);
-            const text = document.createElement('div');
-            text.textContent = item.name;
-            nameCell.appendChild(text);
-            setTimeout(() => {
-               if (text.scrollWidth > nameCell.clientWidth) {
-                  // text.className = 'marquee';
-                  //empty nameCell
-                  nameCell.innerHTML = '';
-                  //create marquee
-                  const marquee = document.createElement('div'); marquee.className = 'marquee';
-                  const span1 = document.createElement('span'); span1.textContent = item.name;
-                  const span2 = document.createElement('span'); span2.textContent = item.name;
-                  marquee.appendChild(span1);
-                  marquee.appendChild(span2);
-                  nameCell.appendChild(marquee);
-               }
-            });
-            row.appendChild(nameCell);
-
-            // cell: score
-            const scoreCell = document.createElement('div');
-            scoreCell.className = 'cell score';
-            scoreCell.textContent = item.score.toLocaleString(); // Format with commas
-            row.appendChild(scoreCell);
-
-
-            // position row
-            const y = index * parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--row-height'))
-               + (isLast ? (index * 0 + 0) : 0);
-            row.style.top = (y+50) + 'px';
-            grid.appendChild(row);
+            const row = rows.find(r => r.dataset.name == item.name);
+            // update content
+            row.querySelector('.rank-number').textContent = index + 1;
+            row.querySelector('.cell.score').textContent = item.score.toLocaleString(); // Format with commas
+            // crown class
+            row.classList.toggle('last', index === data.length - 1);
+            const crown = row.querySelector('.crown');
+            crown.className = 'crown ' + (index < 3 ? ['gold', 'silver', 'bronze'][index] : '');
+            // position
+            const y = index * parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--row-height'));
+            row.style.transform = `translateY(${y}px)`;
          });
-
-         grid.querySelectorAll('.row').forEach(row => {
-            const key = row.dataset.name;
-            if (oldPositions[key] != null) {
-               const newY = row.getBoundingClientRect().top;
-               const delta = oldPositions[key] - newY;
-               row.style.transform = `translateY(${delta}px)`;
-               requestAnimationFrame(() => {
-                  row.style.transition = `transform var(--transition-duration)`;
-                  row.style.transform = 'translateY(0)';
-               });
-               row.addEventListener('transitionend', () => { row.style.transition = ''; row.style.transform = ''; }, { once: true });
-            }
-         });
-
+        
       }
 
       renderGrid();
@@ -273,14 +256,14 @@
       function updateScores(newScores) {
          newScores.forEach(ns => {
             const entry = data.find(d => d.name === ns.name);
-            if (entry) entry.score = ns.score;
+            if (entry) entry.score += ns.score;
          });
          renderGrid();
       }
 
       setInterval(() => {
          const randIndex = Math.floor(Math.random() * data.length);
-         data[randIndex].score = Math.floor(Math.random() * 10000);
+         data[randIndex].score += Math.floor(Math.random() * 100000);
          renderGrid();
       }, 1000);
    </script>

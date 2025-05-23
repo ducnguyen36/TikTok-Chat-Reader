@@ -286,19 +286,19 @@ io.on('connection', (socket) => {
         tiktokConnectionWrapper.connection.on('social', msg => socket.emit('social', msg));
         tiktokConnectionWrapper.connection.on('like', msg => {
             console.log('Like Event',msg.totalLikeCount, oldLikeCount);
-            if(oldLikeCount){
-                let increaseTienKhi = Math.floor((msg.totalLikeCount - oldLikeCount)/50);
-                if(increaseTienKhi > 0) {
-                    tienkhi += increaseTienKhi;
-                    console.log('tienkhi bam like', tienkhi);
-                    updateOrbUI(tienkhi/1204);
-                    oldLikeCount = msg.totalLikeCount;
-                }  
-            }else{
-                //first time get the like count
-                console.log('First time get the like count', msg.totalLikeCount);
-                oldLikeCount = msg.totalLikeCount;
-            }
+            // if(oldLikeCount){
+            //     let increaseTienKhi = Math.floor((msg.totalLikeCount - oldLikeCount)/50);
+            //     if(increaseTienKhi > 0) {
+            //         tienkhi += increaseTienKhi;
+            //         console.log('tienkhi bam like', tienkhi);
+            //         updateOrbUI(tienkhi/1204);
+            //         oldLikeCount = msg.totalLikeCount;
+            //     }  
+            // }else{
+            //     //first time get the like count
+            //     console.log('First time get the like count', msg.totalLikeCount);
+            //     oldLikeCount = msg.totalLikeCount;
+            // }
             socket.emit('like', msg)
         });
         tiktokConnectionWrapper.connection.on('questionNew', msg => socket.emit('questionNew', msg));
@@ -402,11 +402,11 @@ io.on('connection', (socket) => {
         }
     });
     socket.on('testing', (data) => {
-        console.log('testing', data);
-        tienkhi += parseInt(data);
-        if(tienkhi > 1000) tienkhi = 0;
-        console.log('tienkhi testing', tienkhi);
-        updateOrbUI(tienkhi/1204);
+        // console.log('testing', data);
+        // tienkhi += parseInt(data);
+        // if(tienkhi > 1000) tienkhi = 0;
+        // console.log('tienkhi testing', tienkhi);
+        // updateOrbUI(tienkhi/1204);
     });
 });
 
