@@ -248,6 +248,9 @@ io.on('connection', (socket) => {
         tiktokConnectionWrapper.connection.on('member', msg => socket.emit('member', msg));
         tiktokConnectionWrapper.connection.on('chat', msg => socket.emit('chat', msg));
         tiktokConnectionWrapper.connection.on('gift', msg => {
+            
+            socket.emit('gift', msg)
+
             //log the gift to the file
             const logEntry = {
                 giftId: msg.giftId,
@@ -317,6 +320,7 @@ io.on('connection', (socket) => {
         uploadToAppsScript();
     });
     socket.on('updateLogFile', (data, receiversDetails) => {
+        
         receiversDetails = receiversDetails.map(receiver => {
             delete receiver.score;
         })
@@ -340,6 +344,8 @@ io.on('connection', (socket) => {
         }
         console.log('JSON entry:', JSON.stringify(logEntry, null, 2));
         logGift(logEntry)
+
+        
     })
     
     socket.on('initLogFile', (talents) => {

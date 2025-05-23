@@ -605,12 +605,12 @@ connection.on('rawData', (messageTypeName, binary) => {
     //     console.log(msg);
     // }
     // if(messageTypeName !== 'WebcastGiftMessage') return;
-    console.log(messageTypeName);
+    // console.log(messageTypeName);
     const hexString = Array.from(new Uint8Array(binary))
     .map(byte => byte.toString(16).padStart(2, '0'))
     .join(' ');
 
-    console.log(hexString);
+    // console.log(hexString);
 })
 
 // viewer stats
