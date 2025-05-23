@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Voting Bar Overlay</title>
+    <link rel="stylesheet" href="pk.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+       href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;1,100;1,200;1,300;1,400;1,500;1,600;1,700&display=swap"
+       rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"
+       referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.4.1/socket.io.min.js" crossorigin="anonymous"
+       referrerpolicy="no-referrer"></script>
+    <script src="connection.js"></script>
+    <script src="app.js"></script>
+    <script src="tikficonnect.js"></script>
+    <script>
+        var interval
+        var maxScore = 120000;
+        let timer = -8;
+        let score = 0;
+        updateScoreBar = (score) => {
+            // Tính phần trăm điểm số nếu lớn hơn 100% thì hiển thị 100% và hiển thị nhỏ nhất là từ 10%
+            let percent = Math.min(100, 15 + (score / maxScore) * 85);
+            $('.score-progress').css('width', percent + '%');
+            $('.score-number').text(score);
+            if($('.max-score').css('visibility') === 'visible'){
+                $('.max-score').text((maxScore - score > 0)? 'OVER +' + (maxScore - score): 'STEAL!');
+            }
+        }
+        updateScoreBar(score);
+        connection.on('updateVote', (addScore) => {
+            console.log('voting page new adding score', addScore)
+            if(timer < -7) return;
+            score += addScore;
+            updateScoreBar(score);
+        });
+        connection.on('startVote', (data) => {
+            timer = data.duration;
+            score = 0;
+            let minutes, seconds;
+            console.log(data);
+            maxScore = 120000;
+            $('.score-bar').css('background-color', 'rgb(0, 75, 75)')
+            //delete background linear-gradient of score-progress
+            $('.score-progress').css('background', 'none')
+            $('.score-progress').css('background-color', 'cyan')
+            $('.max-score').css('visibility', 'hidden');
+            updateScoreBar(0);
+            $('.header-div h1').text(data.name.toUpperCase());
+            if(data.max){
+                maxScore = data.max;
+                $('.header-div h1').text(data.name.toUpperCase() + ' STEAL MVP')
+                $('.score-bar').css('background-color', 'rgb(90, 3, 25)')
+                $('.score-progress').css('background', 'linear-gradient(to right, rgb(236, 26, 79),rgb(231, 110, 141))')
+                $('.max-score').text('OVER + ' + data.max);
+                $('.max-score').css('visibility', 'visible');
+            }
+            
+            // if(data.max) maxScore = data.max;
+            clearInterval(interval);
+            interval = setInterval(() => {
+                minutes = parseInt(timer / 60, 10);
+            seconds = parseInt(timer % 60, 10);
+
+            minutes = minutes < 10 ? "0" + minutes : minutes;
+
+
+            //if timer < 1minute, only display seconds >1 then display minutes and seconds
+            //if timer <0, display number of '.' equal the time to 0
+            if (timer > 59) {
+               seconds = seconds < 10 ? "0" + seconds : seconds;
+               $('.timer-div').text(minutes + ":" + seconds);
+            } else if (timer >= 0) {
+               if (timer < 10) {
+                  $('.timer-div').removeClass('blink')
+                  void $('.timer-div')[0].offsetWidth;
+                  $('.timer-div').addClass('blink')
+               }
+               $('.timer-div').text(seconds);
+            } else if (timer >= -7) {
+               if (timer === -1) $('.timer-div').removeClass('blink')
+               $('.timer-div').text('.'.repeat(Math.abs(timer)));
+            } else {
+               clearInterval(interval);
+                if(data.max){
+                    if(score >= data.max) $('.timer-div').text('Success!');
+                    else $('.timer-div').text('Failed!');
+                } else {
+                    $('.timer-div').text('Finished!');
+                }
+            }
+            timer--;
+            }, 1000);
+        });
+        
+        //test update score bar with score keep adding random number the random number is an integer between 0 and 1000
+        // let testScore = 0;
+        // let testInterval = setInterval(() => {
+        //     testScore += Math.floor(Math.random() * 5000);
+        //     updateScoreBar(testScore);
+        //     //delete interval after testScore over 200000
+        //     if(testScore > 200000) {
+        //         clearInterval(testInterval);
+        //     }
+        // }, 1000);
+
+        
+
+    </script>
+  <style>
+    /* Div cha */
+    .custom-div {
+      position: relative;
+      width: 600px;
+      height: 150px;
+      background-color: rgba(0, 0, 0, 0.8);
+      border-radius: 20px;
+      margin: 0; /* Căn giữa trang theo chiều ngang (tùy chọn) */
+      overflow: hidden;  /* Để các phần tử con không tràn ra ngoài */
+    }
+    /* Div header */
+    .header-div {
+      position: absolute;
+      top: 0px;
+      background-color: rgba(0, 0, 0, 0.6);
+      left: 50%;
+      width: 250px;
+      height: 40px;
+      transform: translateX(-50%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-bottom-left-radius: 10px;
+      border-bottom-right-radius: 10px;
+      font-family: 'Roboto', sans-serif;
+      font-weight: bold;
+    }
+    .header-div h1 {
+      margin: 0;
+      font-size: 24px;
+      color: white;
+      text-transform: uppercase;
+    }
+    /* Div timer */
+    .timer-div {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 50px;
+      color: white;
+      font-family: 'Montserrat', sans-serif;
+      font-weight: bold;
+    }
+    .timer-div.blink{
+        top:30%;
+        left:48%;
+        animation: zoomOut 1s linear;
+        color:red;
+    }
+
+    @keyframes zoomOut {
+        0% {
+            transform: scale(1);
+            opacity: 1;
+        }
+        50% {
+            transform: scale(1.5);
+            opacity: 1;
+        }
+        100% {
+            transform: scale(2);
+            opacity: 0;
+        }
+    }
+    /* Div score bar */
+    .score-bar {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 40px; /* Bạn có thể thay đổi chiều cao theo ý muốn */
+      background-color: rgb(0, 75, 75);
+      /* background-color:  rgb(90, 3, 25); */
+      /* Bo tròn 2 góc dưới theo div cha */
+      border-bottom-left-radius: 20px;
+      border-bottom-right-radius: 20px;
+      overflow: hidden;
+      /* Sử dụng flex để căn giữa theo chiều dọc */
+      display: flex;
+      align-items: center;
+      padding-left: 20px; /* Tăng padding bên trái */
+    }
+    /* Progress bar bên trong score bar: thể hiện % điểm hiện tại */
+    .score-progress {
+      position: absolute;
+      left: 0;
+      top: 0;
+      height: 100%;
+      width: 15%; /* Ví dụ: 50% điểm, thay đổi theo dữ liệu thực tế */
+      background-size: 600px 40px;
+      background-repeat: no-repeat;
+      background-color: cyan ;
+      /* background-color: rgb(236, 39, 89);  */
+      /* background: linear-gradient(to right, rgb(236, 26, 79),rgb(231, 110, 141));  */
+      /* border-top-left-radius: 20px; */
+      border-bottom-left-radius: 20px;
+      border-bottom-right-radius: 20px;
+      border-top-right-radius: 20px;
+      z-index: 0;
+    }
+    /* Score number: hiển thị số điểm, màu đen, đặt ở góc trái có padding */
+    .score-number {
+      position: relative;
+      font-size: 28px;
+      color: black;
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 600;
+      /* Padding theo yêu cầu: bên trên, dưới và bên trái */
+      
+      z-index: 1; /* Để luôn hiển thị trên các thành phần khác */
+    }
+    .max-score {
+        visibility: hidden;
+        position: absolute;
+        right: 40px;
+        top: 4px;
+        font-size: 28px;
+        color: black;
+        font-family: 'Montserrat', sans-serif;
+        font-weight: 600;
+        
+    }
+  </style>
+</head>
+<body>
+  <div class="custom-div">
+    <!-- Div header chứa chữ "DLEE" -->
+    <div class="header-div">
+      <h1>NOVIX</h1>
+    </div>
+    <!-- Div hiển thị đồng hồ đếm ngược -->
+    <div class="timer-div">
+      00:00
+    </div>
+    <!-- Div thanh điểm (score bar) -->
+    <div class="score-bar">
+        <!-- Progress bar: thay đổi width theo % điểm -->
+        <div class="score-progress"></div>
+        <!-- Số điểm hiển thị -->
+        <div class="score-number">0</div>
+        <div class="max-score">0</div>
+    </div>
+  </div>
+</body>
+</html>

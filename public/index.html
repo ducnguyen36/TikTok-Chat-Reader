@@ -34,14 +34,11 @@
             let talent = talents.find(t => t.nickname === input.previousElementSibling.previousElementSibling.innerText);
             talent.receiveDiamond = score;
             input.previousElementSibling.innerText = talent.score + talent.receiveDiamond;
+            
             //update RoomStats
             updateRoomStats();
             
-            // receiversDetailsManual.map(t => {
-            //     if(t.nickname === input.previousElementSibling.previousElementSibling.innerText)
-            //         t.receiveDiamond = score;
-            // })
-            // console.log('receiversDetailsManual',receiversDetailsManual);
+          
             connection.updateLogFile({
                 msgId: 'manual',
                 timestamp: Number(Date.now()),
@@ -85,11 +82,7 @@
             //update UI score
             $('#groupmembers .memberContainer[data-userid="' + talent.userId + '"] .memberScore')
                 .text(talent.score+talent.receiveDiamond);
-            // let receiversDetails = talents.map(t => {
-            //     delete t.score;
-            //     t.receiveDiamond = (talent.userId === t.userId)?score:0;
-            //     return t;
-            // })
+        
             let receiversDetails = talents.map(t => {
                 const clonedTalent = structuredClone(t); // Deep copy
                 delete clonedTalent.score;

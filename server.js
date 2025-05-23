@@ -13,92 +13,10 @@ const { clientBlocked } = require('./limiter');
 
 const app = express();
 const httpServer = createServer(app);
-let queue = [];
 let giftQueue = [];
 let isProcessing = false;
-let updatingOrbUI = false;
-let isReady = false;
+
 let uploadInterval = null;
-// Setup puppeteer
-var browser
-var page
-var xPosition = 626;
-var inputs;
-const delay = (time) => new Promise(resolve => setTimeout(resolve, time));
-
-(async () => {
-    browser = await puppeteer.launch({ headless: false }); // Launch Puppeteer with visible browser
-    page = await browser.newPage(); // Open a new page
-    await page.goto('https://rct-ai.github.io/frontend-slides/diablo-health-orb-shader/#/2');
-    await delay(3000);
-    await page.click('#tab-4\\.VarianTs');
-    await delay(3000);
-    await page.click('.tp-rotv_t');
-    inputs = await page.$$('.tp-txtv_i');
-    
-    const intervalTime = 100; // 1 second interval
-    let clickCount = 1;
-    await page.evaluate(input => input.value = '', inputs[1]);
-    await inputs[1].type('0.07');
-    await page.keyboard.press('Enter');
-    isReady = true;
-    
-    // (async () => {
-    //     for (let clickCount = 0; clickCount < 85; clickCount++) {
-    //         let value = await page.evaluate(input => {
-    //             const value = parseFloat(input.value);
-    //             input.value = ''; 
-    //             return value;
-    //         }, inputs[1]);
-        
-    //         console.log(`value: ${value}, clickCount: ${clickCount}`);
-        
-    //         await inputs[1].type(`${(value + 0.01).toFixed(2)}`);
-    //         await page.keyboard.press('Enter');
-    //         // Optional: Wait for a short delay to simulate interval behavior
-    //         await new Promise(resolve => setTimeout(resolve, intervalTime));
-    //         if(clickCount===84){
-    //             clickCount = 0;
-    //             await page.evaluate(input => input.value = '', inputs[1]);
-    //             await inputs[1].type('0.07');
-    //             await page.keyboard.press('Enter');
-    //             await new Promise(resolve => setTimeout(resolve, intervalTime));
-    //         }
-            
-    //         }
-    //     console.log('Finished');
-    // })();
-})();
-
-async function updateOrbUI(value){
-    //while process is running wait for 2 second
-    if(!isReady) {
-        console.log('Page not ready, returning....');
-        return;
-    }
-    if(updatingOrbUI) {
-        console.log('Updating is in progress, skipping...');
-        return;
-    }
-    updatingOrbUI = true;
-    // Check if the browser is closed
-    if (browser && browser.isConnected()) {
-        //delete inputs[1].text
-        // await page.evaluate(input => input.value = '', inputs[1]);
-        await page.evaluate(input => {
-            const value = parseFloat(input.value);
-            input.value = ''; 
-        }, inputs[1]);
-        
-        console.log(`value: ${(value+0.07).toFixed(2)}`)
-        await inputs[1].type(`${(value+0.07).toFixed(2)}`);
-        await page.keyboard.press('Enter');
-    } else {
-        console.log('Browser is closed or not connected. Cannot update UI.');
-    }
-    updatingOrbUI = false;
-}
-
 
 //use express to parse json
 app.use(express.json());
@@ -204,30 +122,7 @@ app.post('/saveMemberAvatars', (req, res) => {
   
   // Serve the images from the 'memberAvatars' folder
   app.use('/memberAvatars', express.static(path.join(__dirname, 'memberAvatars')));
-// Connect to OBS WebSocket function
-async function connectToOBS() {
-    //check if obs is already connected
-    if (obs._socket && obs._socket.readyState === 1) {
-        console.log('Already connected to OBS');
-        return;
-    }
-    try {
-        // Connect to OBS WebSocket
-        await obs.connect(
-            process.env.OBS_ADDRESS || 'ws://localhost:4455',
-            process.env.OBS_PASSWORD || ''
-        );
-        console.log('Connected to OBS WebSocket');
-    } catch (error) {
-        console.error('Failed to connect to OBS WebSocket:', error);
-    }
-}
-// async function logGift(logEntry) {
-//     return new Promise((resolve, reject) => {
-//         queue.push({ logEntry, resolve, reject });
-//         if(!isProcessing) processQueue();
-//     });
-// }
+
 function logGift(logEntry) {
     return new Promise((resolve, reject) => {
         // Check for existing entry in giftQueue
@@ -303,51 +198,16 @@ async function processQueue() {
     isProcessing = false;
 }
 
-// async function processQueue() {
-//     isProcessing = true;
-
-//     while (queue.length > 0) {
-//         const { logEntry, resolve, reject } = queue.shift();
-
-//         try {
-//             const data = await fs.promises.readFile(filePath, 'utf-8');
-//             let jsonData = JSON.parse(data);
-//             //find msgId in jsonData match logEntry.msgId
-//             const existingEntry = jsonData.find(entry => entry.msgId === logEntry.msgId);
-//             if (existingEntry) {
-//                 //update receiversDetails
-//                 existingEntry.receiversDetails = logEntry.receiversDetails
-//                 if(existingEntry.msgId === 'manual') {
-//                     existingEntry.timestamp = logEntry.timestamp;
-//                 }
-//             }else{
-//                 // Add the new log entry to the JSON data
-//                 jsonData.push(logEntry);
-//             }
-//             // Write the updated JSON data back to the file
-//             await fs.promises.writeFile(filePath, JSON.stringify(jsonData, null, 2), 'utf-8');
-//             resolve();
-//         } catch (error) {
-//             if (error.code !== 'ENOENT') throw err; // Ignore "file not found" errors
-//             console.error(error);
-//             reject(error);
-//         }
-//     }
-
-//     isProcessing = false;
-// }
-
 io.on('connection', (socket) => {
     let tiktokConnectionWrapper;
 
     console.info('New connection from origin', socket.handshake.headers['origin'] || socket.handshake.headers['referer']);
-    // connectToOBS();
     socket.on('setUniqueId', (uniqueId, options, proxy) => {
 
         // Prohibit the client from specifying these options (for security reasons)
         if (typeof options === 'object' && options) {
-            // delete options.requestOptions;
-            // delete options.websocketOptions;
+            delete options.requestOptions;
+            delete options.websocketOptions;
         } else {
             options = {};
         }
@@ -421,13 +281,7 @@ io.on('connection', (socket) => {
             console.log('JSON entry:', JSON.stringify(logEntry, null, 2));
             // Append the log entry to the existing file
             logGift(logEntry)
-            //check if giftId 5655 repeatend = true and receiverUserInGroupLive not exsist increase tienkhi
-            if(msg.giftId === 5655 && msg.repeatEnd === true && !msg.receiverUserInGroupLive) {
-                tienkhi += msg.repeatCount;
-                console.log('tienkhi hoahong', tienkhi);
-                updateOrbUI(tienkhi/1204);
-            } 
-            socket.emit('gift', msg)
+            
         });
         tiktokConnectionWrapper.connection.on('social', msg => socket.emit('social', msg));
         tiktokConnectionWrapper.connection.on('like', msg => {

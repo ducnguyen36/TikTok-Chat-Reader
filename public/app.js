@@ -10,7 +10,7 @@ let diamondsCount = 0;
 let scoreTemp = [];
 var talents =[];
 let roomState;
-// let receiversDetailsManual = [];
+
 //create obs instance
 const obs = new OBSWebSocket();
 
@@ -104,7 +104,6 @@ function connect() {
                 // Create the member info element
                 var $memberInfo = $('<div class="memberInfo"></div>');
                 var $nickname = $('<div class="memberNickname"></div>').text(member.nickname);
-                // var $userId = $('<div class="memberId"></div>').text(member.userId);
                 var $score = $('<div class="memberScore"></div>').text(member.score+member.receiveDiamond);
                 var $input = $('<input type="text" onchange="manualUpdateScore(this)" class="memberInput" placeholder="Enter score" value="0">');
                 $memberInfo.append($nickname, $score, $input);
@@ -118,17 +117,10 @@ function connect() {
               //emit event to server to init the log file
               connection.initLogFile(talents);
 
-              //generate default receiversDetails
-              // receiversDetailsManual = talents.map(talent => {
-              //   const clonedTalent = structuredClone(talent); // Deep copy
-              //   delete clonedTalent.score;
-              //   clonedTalent.receiveDiamond = 0;
-              //   return clonedTalent;
-              // });
+            
             }
             
-            // reset stats
-            // talents = [];
+            
             viewerCount = 0;
             likeCount = 0;
             diamondsCount = 0;
@@ -193,11 +185,6 @@ function addChatItem(color, data, text, summarize) {
             </span>
         </div>
     `);
-
-    // container.stop();
-    // container.animate({
-    //     scrollTop: container[0].scrollHeight
-    // }, 400);
 }
 
 /**
@@ -265,11 +252,6 @@ function addGiftItem(data) {
     } else {
         container.prepend(html);
     }
-
-    // container.stop();
-    // container.animate({
-    //     scrollTop: container[0].scrollHeight
-    // }, 800);
 }
 
 // Global variables for the two teams (competitors)
