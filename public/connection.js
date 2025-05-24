@@ -72,6 +72,10 @@ class TikTokIOConnection {
         console.info("uploadLogFile");
         this.socket.emit('uploadLogFile');
     }
+    reRender(uniqueId){
+        console.info("reRender");
+        this.socket.emit('reRender', uniqueId);
+    }
     on(eventName, eventHandler) {
         this.socket.on(eventName, eventHandler);
     }

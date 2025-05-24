@@ -8,7 +8,7 @@ let likeCount = 0;
 let diamondsCount = 0;
 
 let scoreTemp = [];
-var talents =[];
+var talents = [];
 let roomState;
 
 //create obs instance
@@ -19,18 +19,18 @@ const obs = new OBSWebSocket();
 async function connectToOBS() {
   //check if obs is already connected
   if (obs._socket && obs._socket.readyState === 1) {
-      console.log('Already connected to OBS');
-      return;
+    console.log('Already connected to OBS');
+    return;
   }
   try {
-      // Connect to OBS WebSocket
-      await obs.connect(
-          'ws://localhost:4455',
-          ''
-      );
-      console.log('Connected to OBS WebSocket');
+    // Connect to OBS WebSocket
+    await obs.connect(
+      'ws://localhost:4455',
+      ''
+    );
+    console.log('Connected to OBS WebSocket');
   } catch (error) {
-      console.error('Failed to connect to OBS WebSocket:', error);
+    console.error('Failed to connect to OBS WebSocket:', error);
   }
 }
 
@@ -38,121 +38,170 @@ async function connectToOBS() {
 if (!window.settings) window.settings = {};
 
 $(document).ready(() => {
-    $('#connectButton').click(() => {
+  $('#connectButton').click(() => {
+    window.settings.username = ''
+    talents = [];
+    console.log('talents', talents);
+    connect();
+  });
+  $('#uniqueIdInput').on('keyup', function (e) {
+    if (e.key === 'Enter') {
       window.settings.username = ''
       talents = [];
-      console.log('talents',talents);  
+      console.log('talents', talents);
       connect();
-    });
-    $('#uniqueIdInput').on('keyup', function (e) {
-        if (e.key === 'Enter') {
-          window.settings.username = ''
-          talents = [];
-          console.log('talents',talents);  
-          connect();
-        }
-    });
-    connectToOBS();
-    if (window.settings.username) connect();
+    }
+  });
+  connectToOBS();
+  if (window.settings.username) connect();
 })
 
 function connect() {
-    let uniqueId = window.settings.username || $('#uniqueIdInput').val();
-    let proxy = window.settings.proxy || false;
-    if (uniqueId !== '') {
-    
-        $('#stateText').text('Connecting...');
-        talents = [];
-        connection.connect(uniqueId, proxy, {
-            enableExtendedGiftInfo: true
-            // processInitialData: false,
-            // fetchRoomInfoOnConnect: false
-        }).then(state => {
-            $('#stateText').text(`Connected to roomId ${state.roomId}`);
-            roomState = state;
-            $('h1').text(`HT - ${roomState.roomInfo.owner.nickname.toUpperCase()}`);
-            // Adding the whole group as a member
-            if(talents.length && (!talents[0].isHost || talents[0].uniqueId !== uniqueId)){
-              talents.unshift({
-                userId: roomState.roomId,
-                uniqueId: roomState.roomInfo.owner.display_id,
-                nickname: roomState.roomInfo.owner.nickname,
-                profilePicture: {
-                  urls: roomState.roomInfo.cover.url_list
-                },
-                score: 0,
-                receiveDiamond: 0,
-                isHost: true    
-              });
-              console.log('Members with Group', talents);
-        
-              // Clear the group members container
-              var $groupMembers = $("#groupmembers");
-              $groupMembers.empty(); // Clear any existing content
-        
-              // Iterate over each live member and build the HTML structure
-              $.each(talents, function(index, member) {
-                // Create container div
-                var $memberContainer = $('<div class="memberContainer"></div>').attr('data-userid', member.userId);;
-                
-                // Create the member avatar element (using the first URL)
-                var imgUrl = member.profilePicture.urls[0];
-                var $memberAvatar = $('<div class="memberAvatar"></div>').append(
-                  $('<img>').attr("src", imgUrl).attr("alt", member.$nickname)
-                );
-                
-                // Create the member info element
-                var $memberInfo = $('<div class="memberInfo"></div>');
-                var $nickname = $('<div class="memberNickname"></div>').text(member.nickname);
-                var $score = $('<div class="memberScore"></div>').text(member.score+member.receiveDiamond);
-                var $input = $('<input type="text" onchange="manualUpdateScore(this)" class="memberInput" placeholder="Enter score" value="0">');
-                $memberInfo.append($nickname, $score, $input);
-                
-                // Append the avatar and info to the container
-                $memberContainer.append($memberAvatar, $memberInfo);
-                
-                // Append the member container to the groupmembers container
-                $groupMembers.append($memberContainer);
-              });
-              //emit event to server to init the log file
-              connection.initLogFile(talents);
+  let uniqueId = window.settings.username || $('#uniqueIdInput').val();
+  let proxy = window.settings.proxy || false;
+  if (uniqueId !== '') {
 
-            
-            }
-            
-            
-            viewerCount = 0;
-            likeCount = 0;
-            diamondsCount = 0;
-            updateRoomStats();
-            $('#pkCompetitor').empty(); // Clear any existing content
-        }).catch(errorMessage => {
-            $('#stateText').text(errorMessage);
+    $('#stateText').text('Connecting...');
+    talents = [];
+    connection.connect(uniqueId, proxy, {
+      enableExtendedGiftInfo: true
+      // processInitialData: false,
+      // fetchRoomInfoOnConnect: false
+    }).then(state => {
+      $('#stateText').text(`Connected to roomId ${state.roomId}`);
+      roomState = state;
+      console.log('roomState', roomState);
+      $('h1').text(`HT - ${roomState.roomInfo.owner.nickname.toUpperCase()}`);
+      // Adding the whole group as a member
+      if (talents.length && (!talents[0].isHost || talents[0].uniqueId !== uniqueId)) {
+        talents.unshift({
+          userId: roomState.roomId,
+          uniqueId: roomState.roomInfo.owner.display_id,
+          nickname: roomState.roomInfo.owner.nickname,
+          profilePicture: {
+            urls: roomState.roomInfo.cover.url_list
+          },
+          score: 0,
+          receiveDiamond: 0,
+          isHost: true
+        });
+        console.log('Members with Group connect', talents);
 
-            // schedule next try if obs username set
-            if (window.settings.username) {
-                setTimeout(() => {
-                    connect(window.settings.username, window.setting.proxy);
-                }, 30000);
-            }
-        })
+        // Clear the group members container
+        var $groupMembers = $("#groupmembers");
+        $groupMembers.empty(); // Clear any existing content
 
-    } else {
-        alert('no username entered');
-    }
+        // Iterate over each live member and build the HTML structure
+        $.each(talents, function (index, member) {
+          // Create container div
+          var $memberContainer = $('<div class="memberContainer"></div>').attr('data-userid', member.userId);;
+
+          // Create the member avatar element (using the first URL)
+          var imgUrl = member.profilePicture.urls[0];
+          var $memberAvatar = $('<div class="memberAvatar"></div>').append(
+            $('<img>').attr("src", imgUrl).attr("alt", member.$nickname)
+          );
+
+          // Create the member info element
+          var $memberInfo = $('<div class="memberInfo"></div>');
+          var $nickname = $('<div class="memberNickname"></div>').text(member.nickname);
+          var $score = $('<div class="memberScore"></div>').text(member.score + member.receiveDiamond);
+          var $input = $('<input type="text" onchange="manualUpdateScore(this)" class="memberInput" placeholder="Enter score" value="0">');
+          $memberInfo.append($nickname, $score, $input);
+
+          // Append the avatar and info to the container
+          $memberContainer.append($memberAvatar, $memberInfo);
+
+          // Append the member container to the groupmembers container
+          $groupMembers.append($memberContainer);
+        });
+        //emit event to server to init the log file
+        connection.initLogFile(talents);
+
+
+      }
+
+
+      viewerCount = 0;
+      likeCount = 0;
+      diamondsCount = 0;
+      updateRoomStats();
+      $('#pkCompetitor').empty(); // Clear any existing content
+    }).catch(errorMessage => {
+      $('#stateText').text(errorMessage);
+      if (talents.length && (!talents[0].isHost || talents[0].uniqueId !== uniqueId)) {
+        // if(!roomState.roomInfo.owner)
+        talents.unshift({
+          userId: roomState?.roomId || 'group',
+          uniqueId: roomState?.roomInfo?.owner?.display_id || 'group',
+          nickname: roomState?.roomInfo?.owner?.nickname || 'group',
+          profilePicture: {
+            urls: roomState?.roomInfo.cover?.url_list || ['https://cdn4.iconfinder.com/data/icons/avatar-1-2/100/Avatar-16-512.png']
+          },
+          score: 0,
+          receiveDiamond: 0,
+          isHost: true
+        });
+        console.log('Members with Group connect', talents);
+
+        // Clear the group members container
+        var $groupMembers = $("#groupmembers");
+        $groupMembers.empty(); // Clear any existing content
+
+        // Iterate over each live member and build the HTML structure
+        $.each(talents, function (index, member) {
+          // Create container div
+          var $memberContainer = $('<div class="memberContainer"></div>').attr('data-userid', member.userId);;
+
+          // Create the member avatar element (using the first URL)
+          var imgUrl = member.profilePicture.urls[0];
+          var $memberAvatar = $('<div class="memberAvatar"></div>').append(
+            $('<img>').attr("src", imgUrl).attr("alt", member.$nickname)
+          );
+
+          // Create the member info element
+          var $memberInfo = $('<div class="memberInfo"></div>');
+          var $nickname = $('<div class="memberNickname"></div>').text(member.nickname);
+          var $score = $('<div class="memberScore"></div>').text(member.score + member.receiveDiamond);
+          var $input = $('<input type="text" onchange="manualUpdateScore(this)" class="memberInput" placeholder="Enter score" value="0">');
+          $memberInfo.append($nickname, $score, $input);
+
+          // Append the avatar and info to the container
+          $memberContainer.append($memberAvatar, $memberInfo);
+
+          // Append the member container to the groupmembers container
+          $groupMembers.append($memberContainer);
+        });
+        //emit event to server to init the log file
+        connection.initLogFile(talents);
+
+
+      }
+
+      // schedule next try if obs username set
+      if (window.settings.username) {
+        setTimeout(() => {
+          connect(window.settings.username, window.setting.proxy);
+        }, 30000);
+      }
+    })
+
+  } else {
+    alert('no username entered');
+  }
 }
 
 // Prevent Cross site scripting (XSS)
 function sanitize(text) {
-    return text.replace(/</g, '&lt;')
+  return text.replace(/</g, '&lt;')
 }
 
 function updateRoomStats() {
-    $('#roomStats').html(`👀: <b>${viewerCount.toLocaleString()}</b> 💓: <b>${likeCount.toLocaleString()}</b> 🪙: <b>${diamondsCount.toLocaleString()}</b> 💻: <b>${talents.reduce((sum, member) => sum + member.score + member.receiveDiamond, 0)}</b>`)
+  $('#roomStats').html(`👀: <b>${viewerCount.toLocaleString()}</b> 💓: <b>${likeCount.toLocaleString()}</b> 🪙: <b>${diamondsCount.toLocaleString()}</b> 💻: <b>${(talents.reduce((sum, member) => sum + member.score + member.receiveDiamond, 0)).toLocaleString()}</b>`)
 }
 
 function generateUsernameLink(data) {
-    return `
+  return `
       <a class="usernamelink" href="https://www.tiktok.com/@${data.uniqueId}" target="_blank">
         <img class="miniprofilepicture" src="${data.profilePictureUrl}">
         ${data.nickname}(${data.uniqueId})
@@ -161,22 +210,22 @@ function generateUsernameLink(data) {
 }
 
 function isPendingStreak(data) {
-    return data.giftType === 1 && !data.repeatEnd;
+  return data.giftType === 1 && !data.repeatEnd;
 }
 
 /**
  * Add a new message to the chat container
  */
 function addChatItem(color, data, text, summarize) {
-    let container = location.href.includes('obs.html') ? $('.eventcontainer') : $('.chatcontainer');
+  let container = location.href.includes('obs.html') ? $('.eventcontainer') : $('.chatcontainer');
 
-    if (container.find('div').length > 500) {
-        container.find('div').slice(0, 200).remove();
-    }
+  if (container.find('div').length > 500) {
+    container.find('div').slice(0, 200).remove();
+  }
 
-    container.find('.temporary').remove();;
+  container.find('.temporary').remove();;
 
-    container.prepend(`
+  container.prepend(`
         <div class=${summarize ? 'temporary' : 'static'}>
             <img class="miniprofilepicture" src="${data.profilePictureUrl}">
             <span>
@@ -187,30 +236,28 @@ function addChatItem(color, data, text, summarize) {
     `);
 }
 
+// rerender the gift container
+
+
 /**
  * Add a new gift to the gift container
  */
 function addGiftItem(data) {
-    console.log(data);
-    let container = location.href.includes('obs.html') ? $('.eventcontainer') : $('.giftcontainer');
+  console.log(data);
+  let container = location.href.includes('obs.html') ? $('.eventcontainer') : $('.giftcontainer');
 
-    if (container.find('div').length > 200) {
-        container.find('div').slice(0, 100).remove();
-    }
+  let streakId = data.userId.toString() + '_' + data.giftId;
 
-    let streakId = data.userId.toString() + '_' + data.giftId;
-
-    let html = `
+  let html = `
         <div data-streakid=${isPendingStreak(data) ? streakId : "'' "}
-          style="background-color: ${
-            data.diamondCount >= 199 && data.diamondCount <= 450 ? 'rgba(173, 216, 230, 0.4)' : // Light pastel blue
-            data.diamondCount >= 451 && data.diamondCount <= 1400 ? 'rgba(135, 206, 250, 0.4)' : // Sky blue pastel
-            data.diamondCount >= 1401 && data.diamondCount <= 3500 ? 'rgba(147, 112, 219, 0.4)' : // Light lavender pastel
-            data.diamondCount >= 3501 && data.diamondCount <= 10000 ? 'rgba(186, 85, 211, 0.4)' : // Orchid pastel
+          style="background-color: ${data.diamondCount >= 199 && data.diamondCount <= 450 ? 'rgba(173, 216, 230, 0.4)' : // Light pastel blue
+      data.diamondCount >= 451 && data.diamondCount <= 1400 ? 'rgba(135, 206, 250, 0.4)' : // Sky blue pastel
+        data.diamondCount >= 1401 && data.diamondCount <= 3500 ? 'rgba(147, 112, 219, 0.4)' : // Light lavender pastel
+          data.diamondCount >= 3501 && data.diamondCount <= 10000 ? 'rgba(186, 85, 211, 0.4)' : // Orchid pastel
             data.diamondCount >= 10001 && data.diamondCount <= 20000 ? 'rgba(218, 112, 214, 0.4)' : // Pale violet pastel
-            data.diamondCount > 20000 ? 'rgba(221, 160, 221, 0.4)' : // Medium pastel purple
-            'transparent'
-          }; padding: 3px; margin-bottom: 1px; border-radius: 5px;"
+              data.diamondCount > 20000 ? 'rgba(221, 160, 221, 0.4)' : // Medium pastel purple
+                'transparent'
+    }; padding: 3px; margin-bottom: 1px; border-radius: 5px;"
         >
             <span>
                 <b>${generateUsernameLink(data)}</b>
@@ -228,7 +275,7 @@ function addGiftItem(data) {
                     </a>
                   `}</b>
                 </span><br>
-                ${isPendingStreak(data) ? '': `
+                ${isPendingStreak(data) ? '' : `
                   <span>
                       ${[...talents].map(talent => `
                         <button
@@ -245,13 +292,13 @@ function addGiftItem(data) {
         </div>
     `;
 
-    let existingStreakItem = container.find(`[data-streakid='${streakId}']`);
+  let existingStreakItem = container.find(`[data-streakid='${streakId}']`);
 
-    if (existingStreakItem.length) {
-        existingStreakItem.replaceWith(html);
-    } else {
-        container.prepend(html);
-    }
+  if (existingStreakItem.length) {
+    existingStreakItem.replaceWith(html);
+  } else {
+    container.prepend(html);
+  }
 }
 
 // Global variables for the two teams (competitors)
@@ -282,15 +329,15 @@ async function triggerOBSVideo(sourceName) {
     return;
   }
   obsSourcesActive[sourceName] = true;
-  
+
   // Enable the source in OBS
   await setOBSVisibility(sourceName, true);
 }
 
 connection.on('competition', (msg) => {
-    console.log('Event competition', msg);
-    
-    // Helper: initialize PK UI given an array of two competitor objects
+  console.log('Event competition', msg);
+
+  // Helper: initialize PK UI given an array of two competitor objects
   function initPKCompetitor(competitors) {
     if (competitors.length === 2) {
       team1 = competitors[0];
@@ -319,7 +366,7 @@ connection.on('competition', (msg) => {
         </div>`;
 
       $("#pkCompetitor").html(competitor1HTML + '<h1>PK</h1>' + competitor2HTML);
-      updateOBSImages(team1,team2); 
+      updateOBSImages(team1, team2);
     }
   }
 
@@ -331,11 +378,11 @@ connection.on('competition', (msg) => {
     var details = (msg.status === 6) ?
       msg.memberCompetition.memberCompetitionDetails :
       msg.endCompetition.memberCompetitionDetails;
-    
+
     // For each detail, try to find matching talent from talents.liveMembers.
     // Build an array of two competitor objects.
-    var competitors = details.map(function(detail) {
-      var talent = talents.find(function(member) {
+    var competitors = details.map(function (detail) {
+      var talent = talents.find(function (member) {
         return member.userId === detail.userId;
       });
       return talent;
@@ -347,21 +394,21 @@ connection.on('competition', (msg) => {
     initPKCompetitor(competitors);
   }
 
-    // Stage 1: Initialization – build the competitor UI (Status 3)
-    if (msg.status === 3) {
-      // Clear the current PK UI container
-      $("#pkCompetitor").empty();
-  
-      // Extract competitor details from the initCompetition object
-      var details = msg.initCompetition.memberInitCompetition.memberInitCompetitionDetails;
-      
-      // Check if we have exactly two competitors
-      if (details && details.length === 2) {
-        team1 = details[0].competitor;
-        team2 = details[1].competitor;
-  
-        // Build HTML for the first competitor
-        var competitor1HTML = `
+  // Stage 1: Initialization – build the competitor UI (Status 3)
+  if (msg.status === 3) {
+    // Clear the current PK UI container
+    $("#pkCompetitor").empty();
+
+    // Extract competitor details from the initCompetition object
+    var details = msg.initCompetition.memberInitCompetition.memberInitCompetitionDetails;
+
+    // Check if we have exactly two competitors
+    if (details && details.length === 2) {
+      team1 = details[0].competitor;
+      team2 = details[1].competitor;
+
+      // Build HTML for the first competitor
+      var competitor1HTML = `
           <div class="memberContainer" data-userid="${team1.userId}">
             <div class="memberAvatar">
               <img src="${team1.profilePicture.urls[0]}" alt="${team1.userId}">
@@ -371,9 +418,9 @@ connection.on('competition', (msg) => {
               <div class="memberScore">0</div>
             </div>
           </div>`;
-  
-        // Build HTML for the second competitor
-        var competitor2HTML = `
+
+      // Build HTML for the second competitor
+      var competitor2HTML = `
           <div class="memberContainer" data-userid="${team2.userId}">
             <div class="memberAvatar">
               <img src="${team2.profilePicture.urls[0]}" alt="${team2.userId}">
@@ -383,153 +430,153 @@ connection.on('competition', (msg) => {
               <div class="memberScore">0</div>
             </div>
           </div>`;
-  
-        // Combine the competitor HTML with the PK separator
-        var newHTML = competitor1HTML + '<h1>PK</h1>' + competitor2HTML;
-  
-        // Update the pkCompetitor container with the new HTML
-        $("#pkCompetitor").html(newHTML);
-        updateOBSImages(team1,team2); // Call the function to update OBS images
+
+      // Combine the competitor HTML with the PK separator
+      var newHTML = competitor1HTML + '<h1>PK</h1>' + competitor2HTML;
+
+      // Update the pkCompetitor container with the new HTML
+      $("#pkCompetitor").html(newHTML);
+      updateOBSImages(team1, team2); // Call the function to update OBS images
+    }
+  }
+  // Stage 2: Live score update (Status 6)
+  else if (msg.status === 6) {
+    // Get the competition details from the message object
+    var details = msg.memberCompetition.memberCompetitionDetails;
+    setOBSVisibility('team1', false);
+    setOBSVisibility('team2', false);
+    // Determine the score for each competitor
+    var team1Score = details[0].score || "0";
+    var team2Score = details[1].score || "0";
+
+    // Update the score elements for each competitor
+    $("#pkCompetitor .memberContainer").eq(0).find(".memberScore").text(team1Score);
+    $("#pkCompetitor .memberContainer").eq(1).find(".memberScore").text(team2Score);
+
+    // Compare scores and update background colors accordingly
+    if (team1Score > team2Score) {
+      $("#pkCompetitor .memberContainer").eq(0).css('background-color', 'yellow');
+      $("#pkCompetitor .memberContainer").eq(1).css('background-color', '');
+      // $("#pkCompetitor h1").text("PK");
+    } else if (team2Score > team1Score) {
+      $("#pkCompetitor .memberContainer").eq(1).css('background-color', 'yellow');
+      $("#pkCompetitor .memberContainer").eq(0).css('background-color', '');
+      // $("#pkCompetitor h1").text("PK");
+    } else { // Draw condition
+      $("#pkCompetitor .memberContainer").eq(0).css('background-color', '');
+      $("#pkCompetitor .memberContainer").eq(1).css('background-color', '');
+      // $("#pkCompetitor h1").text("DRAW");
+    }
+  }
+  // Stage 3: Competition end – update scores and mark winners (Status 5)
+  else if (msg.status === 5) {
+    var details = msg.endCompetition.memberCompetitionDetails;
+    if (details && details.length === 2) {
+      details.forEach(function (detail, index) {
+        // Update the score in the corresponding container
+        $("#pkCompetitor .memberContainer").eq(index).find(".memberScore").text(detail.score);
+        //   console.log('team',index,detail.winningStatus);
+        // Determine background color: winningStatus 1 => yellow (win), 2 => blue (lose)
+        var bgColor = (detail.winningStatus === 1) ? 'yellow' : (detail.winningStatus === 2) ? 'blue' : '';
+        //   console.log('team bgColor',bgColor);
+        $("#pkCompetitor .memberContainer").eq(index).css('background-color', bgColor);
+      });
+
+      // If both scores are equal, change the PK separator text to "DRAW"
+      var score1 = parseInt(details[0].score, 10);
+      var score2 = parseInt(details[1].score, 10);
+      if (score1 === score2) {
+        $("#pkCompetitor h1").text("DRAW");
       }
-    } 
-    // Stage 2: Live score update (Status 6)
-    else if (msg.status === 6) {
-      // Get the competition details from the message object
-      var details = msg.memberCompetition.memberCompetitionDetails;
+      team1 = team2 = null; // Reset teams for next competition
       setOBSVisibility('team1', false);
       setOBSVisibility('team2', false);
-      // Determine the score for each competitor
-      var team1Score = details[0].score || "0";
-      var team2Score = details[1].score || "0";
-      
-      // Update the score elements for each competitor
-      $("#pkCompetitor .memberContainer").eq(0).find(".memberScore").text(team1Score);
-      $("#pkCompetitor .memberContainer").eq(1).find(".memberScore").text(team2Score);
+      //set video KO true
+      setOBSVisibility('KO', true);
+      //after 3 seconds set video KO false
+      setTimeout(() => {
+        setOBSVisibility('KO', false);
+      }, 3000);
 
-      // Compare scores and update background colors accordingly
-        if (team1Score > team2Score) {
-            $("#pkCompetitor .memberContainer").eq(0).css('background-color', 'yellow');
-            $("#pkCompetitor .memberContainer").eq(1).css('background-color', '');
-            // $("#pkCompetitor h1").text("PK");
-        } else if (team2Score > team1Score) {
-            $("#pkCompetitor .memberContainer").eq(1).css('background-color', 'yellow');
-            $("#pkCompetitor .memberContainer").eq(0).css('background-color', '');
-            // $("#pkCompetitor h1").text("PK");
-        } else { // Draw condition
-            $("#pkCompetitor .memberContainer").eq(0).css('background-color', '');
-            $("#pkCompetitor .memberContainer").eq(1).css('background-color', '');
-            // $("#pkCompetitor h1").text("DRAW");
-        }
-    } 
-    // Stage 3: Competition end – update scores and mark winners (Status 5)
-    else if (msg.status === 5) {
-      var details = msg.endCompetition.memberCompetitionDetails;
-      if (details && details.length === 2) {
-        details.forEach(function(detail, index) {
-          // Update the score in the corresponding container
-          $("#pkCompetitor .memberContainer").eq(index).find(".memberScore").text(detail.score);
-        //   console.log('team',index,detail.winningStatus);
-          // Determine background color: winningStatus 1 => yellow (win), 2 => blue (lose)
-          var bgColor = (detail.winningStatus === 1) ? 'yellow' : (detail.winningStatus === 2) ? 'blue' : '';
-        //   console.log('team bgColor',bgColor);
-          $("#pkCompetitor .memberContainer").eq(index).css('background-color', bgColor);
-        });
-        
-        // If both scores are equal, change the PK separator text to "DRAW"
-        var score1 = parseInt(details[0].score, 10);
-        var score2 = parseInt(details[1].score, 10);
-        if (score1 === score2) {
-          $("#pkCompetitor h1").text("DRAW");
-        }
-        team1 = team2 = null; // Reset teams for next competition
-        setOBSVisibility('team1', false);
-        setOBSVisibility('team2', false);
-        //set video KO true
-        setOBSVisibility('KO', true);
-        //after 3 seconds set video KO false
-        setTimeout(() => {
-          setOBSVisibility('KO', false);
-        }, 3000);
-
-      }
     }
-  });
+  }
+});
 //live member
 connection.on('liveMember', (msg) => {
-  if(talents.length > 1) return;
-  if(talents.length === 1 && !talents[0].isHost) return;
-  if(talents[0]?.isHost && talents[0]?.uniqueId === $('#uniqueIdInput').val())
+  if (talents.length > 1) return;
+  if (talents.length === 1 && !talents[0].isHost) return;
+  if (talents[0]?.isHost && talents[0]?.uniqueId === $('#uniqueIdInput').val())
     talents = [];
-    // console.log('window href:',window.location.href);
-    // if(!window.location.href.includes('index.html')) return;
-    // console.log('Event LIVE group member', msg);
-    talents = msg.liveMembers.map(function(member) {
-        member.score = 0; // Default score; adjust logic as needed
-        member.receiveDiamond = 0; // Default receiveDiamond; adjust logic as needed
-        return member;
-      });
-    console.log('group member before avatar', talents);
-    // Call the server to save the avatar images and get file paths
-    saveAvatarsAndGetPaths(talents);
-    // Adding the whole group as a member
-    if(roomState){
-      talents.unshift({
-        userId: roomState.roomId,
-        uniqueId: roomState.roomInfo.owner.display_id,
-        nickname: roomState.roomInfo.owner.nickname,
-        profilePicture: {
-          urls: roomState.roomInfo.cover.url_list
-        },
-        score: 0,
-        receiveDiamond: 0,
-        isHost: true    
-      });
-      console.log('Members with Group', talents);
+  // console.log('window href:',window.location.href);
+  // if(!window.location.href.includes('index.html')) return;
+  console.log('Event LIVE group member', msg);
+  talents = msg.liveMembers.map(function (member) {
+    member.score = 0; // Default score; adjust logic as needed
+    member.receiveDiamond = 0; // Default receiveDiamond; adjust logic as needed
+    return member;
+  });
+  // console.log('group member before avatar', talents);
+  // Call the server to save the avatar images and get file paths
+  saveAvatarsAndGetPaths(talents);
+  // Adding the whole group as a member
+  if (roomState) {
+    talents.unshift({
+      userId: roomState?.roomId || 'group',
+      uniqueId: roomState?.roomInfo?.owner?.display_id || 'group',
+      nickname: roomState?.roomInfo?.owner?.nickname || 'group',
+      profilePicture: {
+        urls: roomState?.roomInfo.cover?.url_list || ['https://cdn4.iconfinder.com/data/icons/avatar-1-2/100/Avatar-16-512.png']
+      },
+      score: 0,
+      receiveDiamond: 0,
+      isHost: true
+    });
+    console.log('Members with Group', talents);
 
-      // Clear the group members container
-      var $groupMembers = $("#groupmembers");
-      $groupMembers.empty(); // Clear any existing content
+    // Clear the group members container
+    var $groupMembers = $("#groupmembers");
+    $groupMembers.empty(); // Clear any existing content
 
-      // Iterate over each live member and build the HTML structure
-      $.each(talents, function(index, member) {
-        // Create container div
-        var $memberContainer = $('<div class="memberContainer"></div>').attr('data-userid', member.userId);;
-        
-        // Create the member avatar element (using the first URL)
-        var imgUrl = member.profilePicture.urls[0];
-        var $memberAvatar = $('<div class="memberAvatar"></div>').append(
-          $('<img>').attr("src", imgUrl).attr("alt", member.$nickname)
-        );
-        
-        // Create the member info element
-        var $memberInfo = $('<div class="memberInfo"></div>');
-        var $nickname = $('<div class="memberNickname"></div>').text(member.nickname);
-        // var $userId = $('<div class="memberId"></div>').text(member.userId);
-        var $score = $('<div class="memberScore"></div>').text(member.score + member.receiveDiamond);
-        var $input = $('<input class="manualScore" type="text" onchange="manualUpdateScore(this)" class="memberInput" placeholder="Enter score">');
-        $memberInfo.append($nickname, $score, $input);
-        
-        // Append the avatar and info to the container
-        $memberContainer.append($memberAvatar, $memberInfo);
-        
-        // Append the member container to the groupmembers container
-        $groupMembers.append($memberContainer);
+    // Iterate over each live member and build the HTML structure
+    $.each(talents, function (member) {
+      // Create container div
+      var $memberContainer = $('<div class="memberContainer"></div>').attr('data-userid', member.userId);
 
-        //emit event to server to init the log file
-        connection.initLogFile(talents);
-        
-        //generate default receiversDetails
-        // receiversDetailsManual = talents.map(talent => {
-        //   const clonedTalent = structuredClone(talent); // Deep copy
-        //   delete clonedTalent.score;
-        //   clonedTalent.receiveDiamond = 0;
-        //   return clonedTalent;
-        // });
-      });
-    }
-    
-    console.log('LIVE group member', talents);
-    
+      // Create the member avatar element (using the first URL)
+      var imgUrl = member.profilePicture.urls[0];
+      var $memberAvatar = $('<div class="memberAvatar"></div>').append(
+        $('<img>').attr("src", imgUrl).attr("alt", member.$nickname)
+      );
+
+      // Create the member info element
+      var $memberInfo = $('<div class="memberInfo"></div>');
+      var $nickname = $('<div class="memberNickname"></div>').text(member.nickname);
+      // var $userId = $('<div class="memberId"></div>').text(member.userId);
+      var $score = $('<div class="memberScore"></div>').text(member.score + member.receiveDiamond);
+      var $input = $('<input class="manualScore" type="text" onchange="manualUpdateScore(this)" class="memberInput" placeholder="Enter score">');
+      $memberInfo.append($nickname, $score, $input);
+
+      // Append the avatar and info to the container
+      $memberContainer.append($memberAvatar, $memberInfo);
+
+      // Append the member container to the groupmembers container
+      $groupMembers.append($memberContainer);
+
+
+      //generate default receiversDetails
+      // receiversDetailsManual = talents.map(talent => {
+      //   const clonedTalent = structuredClone(talent); // Deep copy
+      //   delete clonedTalent.score;
+      //   clonedTalent.receiveDiamond = 0;
+      //   return clonedTalent;
+      // });
+    });
+    //emit event to server to init the log file
+    connection.initLogFile(talents);
+  }
+
+  console.log('LIVE group member', talents);
+
 
 })
 //save avatars and get paths
@@ -547,117 +594,88 @@ function saveAvatarsAndGetPaths(members) {
     },
     body: JSON.stringify({ imageUrls }),
   })
-  .then(response => response.json())
-  .then(data => {
-    // Ensure server returns a userId -> avatarFilePath mapping
-    const avatarMap = data.avatarFilePaths;
+    .then(response => response.json())
+    .then(data => {
+      // Ensure server returns a userId -> avatarFilePath mapping
+      const avatarMap = data.avatarFilePaths;
 
-    // Update each member with the correct avatar path
-    members.forEach(member => {
-      if (avatarMap[member.userId]) {
-        member.avatarFilePath = avatarMap[member.userId];
-      }
+      // Update each member with the correct avatar path
+      members.forEach(member => {
+        if (avatarMap[member.userId]) {
+          member.avatarFilePath = avatarMap[member.userId];
+        }
+      });
+
+      console.log('Updated members:', members);
+    })
+    .catch(error => {
+      console.error('Error saving avatars:', error);
     });
-
-    console.log('Updated members:', members);
-  })
-  .catch(error => {
-    console.error('Error saving avatars:', error);
-  });
 }
-// function saveAvatarsAndGetPaths(members) {
-//   // Create a list of image URLs with their userId to send to the server
-//   // Assuming each member has a profilePicture property with an array of URLs
-//   // and we want to use the first URL for each member
-//   // Extract the URLs from the members array
-//   var imageUrls = members.map(member => ({'url': member.profilePicture.urls[0],
-//                                           'userId': member.userId
-//                                         }));
 
-//   // Make an API call to the server to save images and get file paths
-//   fetch('/saveMemberAvatars', {
-//     method: 'POST',
-//     headers: {
-//       'Content-Type': 'application/json',
-//     },
-//     body: JSON.stringify({ imageUrls: imageUrls }),
-//   })
-//   .then(response => response.json())
-//   .then(data => {
-//     // Assuming the server responds with an array of file paths for the images
-//     data.avatarFilePaths.forEach((filePath, index) => {
-//       // Map the file path to the corresponding member
-//       members[index].avatarFilePath = filePath;
-//     });
-
-//   })
-//   .catch(error => {
-//     console.error('Error saving avatars:', error);
-//   });
-// }
 
 //raw data received
 connection.on('rawData', (messageTypeName, binary) => {
-    // let data = TikTokIOConnection.parseMessage(messageTypeName, binary);
+  // let data = TikTokIOConnection.parseMessage(messageTypeName, binary);
 
-    // if (data && data.data) {
-    //     let msg = data.data;
-    //     console.log(msg);
-    // }
-    // if(messageTypeName !== 'WebcastGiftMessage') return;
-    // console.log(messageTypeName);
-    const hexString = Array.from(new Uint8Array(binary))
+  // if (data && data.data) {
+  //     let msg = data.data;
+  //     console.log(msg);
+  // }
+  // if(messageTypeName !== 'WebcastGiftMessage') return;
+  // console.log(messageTypeName);
+  const hexString = Array.from(new Uint8Array(binary))
     .map(byte => byte.toString(16).padStart(2, '0'))
     .join(' ');
 
-    // console.log(hexString);
+  // console.log(hexString);
 })
 
 // viewer stats
 connection.on('roomUser', (msg) => {
-    if (typeof msg.viewerCount === 'number') {
-        viewerCount = msg.viewerCount;
-        updateRoomStats();
-    }
+  if (typeof msg.viewerCount === 'number') {
+    viewerCount = msg.viewerCount;
+    updateRoomStats();
+  }
 })
 
 // like stats
 connection.on('like', (msg) => {
-    console.log('Event like', msg);
-    if (typeof msg.totalLikeCount === 'number') {
-        likeCount = msg.totalLikeCount;
-        updateRoomStats();
-    }
+  // console.log('Event like', msg);
+  if (typeof msg.totalLikeCount === 'number') {
+    likeCount = msg.totalLikeCount;
+    updateRoomStats();
+  }
 
-    if (window.settings.showLikes === "0") return;
+  if (window.settings.showLikes === "0") return;
 
-    if (typeof msg.likeCount === 'number') {
-        addChatItem('#447dd4', msg, msg.label.replace('{0:user}', '').replace('likes', `${msg.likeCount} likes`))
-    }
+  if (typeof msg.likeCount === 'number') {
+    addChatItem('#447dd4', msg, msg.label.replace('{0:user}', '').replace('likes', `${msg.likeCount} likes`))
+  }
 })
 
 // Member join
 let joinMsgDelay = 0;
 connection.on('member', (msg) => {
-    // console.log('Event member', msg);
-    if (window.settings.showJoins === "0") return;
-    let addDelay = 250;
-    if (joinMsgDelay > 500) addDelay = 100;
-    if (joinMsgDelay > 1000) addDelay = 0;
+  // console.log('Event member', msg);
+  if (window.settings.showJoins === "0") return;
+  let addDelay = 250;
+  if (joinMsgDelay > 500) addDelay = 100;
+  if (joinMsgDelay > 1000) addDelay = 0;
 
-    joinMsgDelay += addDelay;
+  joinMsgDelay += addDelay;
 
-    setTimeout(() => {
-        joinMsgDelay -= addDelay;
-        addChatItem('#21b2c2', msg, 'joined', true);
-    }, joinMsgDelay);
+  setTimeout(() => {
+    joinMsgDelay -= addDelay;
+    addChatItem('#21b2c2', msg, 'joined', true);
+  }, joinMsgDelay);
 })
 
 // New chat comment received
 connection.on('chat', (msg) => {
-    if (window.settings.showChats === "0") return;
+  if (window.settings.showChats === "0") return;
 
-    addChatItem('', msg, msg.comment);
+  addChatItem('', msg, msg.comment);
 })
 
 // Function to update a talent's score and UI
@@ -667,7 +685,7 @@ connection.on('chat', (msg) => {
 //   if (talent) {
 //     // Update the talent's score
 //     talent.score += giftData.diamondCount * giftData.repeatCount;
-    
+
 //     // Update the UI for the talent's score
 //     $('#groupmembers .memberContainer[data-userid="' + talent.userId + '"] .memberScore')
 //       .text(talent.score);
@@ -680,100 +698,52 @@ connection.on('chat', (msg) => {
  */
 function updateTalentScore(giftData, calculatedScore) {
   let talent = talents.find(t => t.nickname === giftData.receiverUserInGroupLive);
-  
-  if (talent) {
-      // Update the talent's score with the calculated value
-      talent.score += calculatedScore;
 
-      // Update the UI with the new score
-      $('#groupmembers .memberContainer[data-userid="' + talent.userId + '"] .memberScore')
-          .text(talent.score+talent.receiveDiamond);
+  if (talent) {
+    // Update the talent's score with the calculated value
+    talent.score += calculatedScore;
+
+    // Update the UI with the new score
+    $('#groupmembers .memberContainer[data-userid="' + talent.userId + '"] .memberScore')
+      .text(talent.score + talent.receiveDiamond);
   } else {
-      //Added the score to talents[0]
-      talents[0].score += calculatedScore;
-      $('#groupmembers .memberContainer[data-userid="' + talents[0].userId + '"] .memberScore')
-          .text(talents[0].score+talents[0].receiveDiamond);
+    //Added the score to talents[0]
+    talents[0].score += calculatedScore;
+    $('#groupmembers .memberContainer[data-userid="' + talents[0].userId + '"] .memberScore')
+      .text(talents[0].score + talents[0].receiveDiamond);
   }
 }
-//  var initCompetitionData = {
-//   "status": 3,
-//   "initCompetition": {
-//       "memberInitCompetition": {
-//           "memberInitCompetitionDetails": [
-//               {
-//                   "competitor": {
-//                       "userId": "6894179049950725122",
-//                       "nickname": "TOM 🔥 XV",
-//                       "profilePicture": {
-//                           "urls": [
-//                               "https://p16-sign-sg.tiktokcdn.com/tos-alisg-avt-0068/49983708ea952fe1c9160d148c1ce947~tplv-tiktokx-cropcenter:100:100.webp?dr=14579&refresh_token=fa3657d4&x-expires=1743656400&x-signature=CoNGldt1%2BpRoxqLXr%2FNRWc0OHkE%3D&t=4d5b0474&ps=13740610&shp=a5d48078&shcp=d2876c74&idc=maliva",
-//                               "https://p9-sign-sg.tiktokcdn.com/tos-alisg-avt-0068/49983708ea952fe1c9160d148c1ce947~tplv-tiktokx-cropcenter:100:100.webp?dr=14579&refresh_token=5561f59c&x-expires=1743656400&x-signature=y5%2B9F1eLck%2B0LaHF8eqIPaBrA5k%3D&t=4d5b0474&ps=13740610&shp=a5d48078&shcp=d2876c74&idc=maliva",
-//                               "https://p16-sign-sg.tiktokcdn.com/tos-alisg-avt-0068/49983708ea952fe1c9160d148c1ce947~tplv-tiktokx-cropcenter:100:100.jpeg?dr=14579&refresh_token=e1cfc8b8&x-expires=1743656400&x-signature=%2B8%2B6f9n%2F4bGF9XvOOh8QjR5Qa2Y%3D&t=4d5b0474&ps=13740610&shp=a5d48078&shcp=d2876c74&idc=maliva"
-//                           ]
-//                       }
-//                   }
-//               },
-//               {
-//                   "competitor": {
-//                       "userId": "6534659076852187138",
-//                       "nickname": "Kalila 🔥 XV",
-//                       "profilePicture": {
-//                           "urls": [
-//                               "https://p16-sign-sg.tiktokcdn.com/tos-alisg-avt-0068/a1cee8fc5103a7572754aef552a42a44~tplv-tiktokx-cropcenter:100:100.webp?dr=14579&refresh_token=451f0ad3&x-expires=1743656400&x-signature=J9BUREXWEm0%2B2D9lD4Y2mfoTI64%3D&t=4d5b0474&ps=13740610&shp=a5d48078&shcp=d2876c74&idc=maliva",
-//                               "https://p9-sign-sg.tiktokcdn.com/tos-alisg-avt-0068/a1cee8fc5103a7572754aef552a42a44~tplv-tiktokx-cropcenter:100:100.webp?dr=14579&refresh_token=d6ca6b04&x-expires=1743656400&x-signature=fM9vD10OLKo3pxFnKHNDqf1VggY%3D&t=4d5b0474&ps=13740610&shp=a5d48078&shcp=d2876c74&idc=maliva",
-//                               "https://p16-sign-sg.tiktokcdn.com/tos-alisg-avt-0068/a1cee8fc5103a7572754aef552a42a44~tplv-tiktokx-cropcenter:100:100.jpeg?dr=14579&refresh_token=751df719&x-expires=1743656400&x-signature=h1F%2FDGAVZM5F0Pb%2Fxu5%2BmqjCSkY%3D&t=4d5b0474&ps=13740610&shp=a5d48078&shcp=d2876c74&idc=maliva"
-//                           ]
-//                       }
-//                   }
-//               }
-//           ]
-//       }
-//   },
-//   "msgId": "7488204987466615558",
-//   "createTime": "1743485272615"
-// }
-// New gift received
-// connection.on('gift', (data) => {
-//     if (!isPendingStreak(data) && data.diamondCount > 0) {
-//         diamondsCount += (data.diamondCount * data.repeatCount);
-//         updateRoomStats();
-//         updateTalentScore(data); // Update the talent score
-//     }
 
-//     if (window.settings.showGifts === "0") return;
-
-//     addGiftItem(data);
-// })
 
 connection.on('gift', (data) => {
   if (data.diamondCount > 0) {
-      // Track ongoing streaks and calculate the correct score
-      let score = data.diamondCount * data.repeatCount;
+    // Track ongoing streaks and calculate the correct score
+    let score = data.diamondCount * data.repeatCount;
 
-      if (data.groupId !== 0 && data.giftType === 1) {
-          const groupId = data.groupId;
+    if (data.groupId !== 0 && data.giftType === 1) {
+      const groupId = data.groupId;
 
-          // Find existing entry and subtract previous cost
-          const existingEntry = scoreTemp.find(i => i.groupId === groupId);
-          if (existingEntry) {
-              score -= existingEntry.cost;
-              scoreTemp = scoreTemp.filter(i => i.groupId !== groupId);
-          }
-
-          // If the streak is ongoing, store it
-          if (!data.repeatEnd) {
-              scoreTemp.push({ groupId, cost: data.diamondCount * data.repeatCount });
-          }
+      // Find existing entry and subtract previous cost
+      const existingEntry = scoreTemp.find(i => i.groupId === groupId);
+      if (existingEntry) {
+        score -= existingEntry.cost;
+        scoreTemp = scoreTemp.filter(i => i.groupId !== groupId);
       }
 
-      // Update room stats and talent scores
-      diamondsCount += score;
-      updateRoomStats();
-      updateTalentScore(data, score);
+      // If the streak is ongoing, store it
+      if (!data.repeatEnd) {
+        scoreTemp.push({ groupId, cost: data.diamondCount * data.repeatCount });
+      }
+    }
 
-      // if (data.diamondCount < 10) {
-        // updateOBSImages();
-      // }
+    // Update room stats and talent scores
+    diamondsCount += score;
+    updateRoomStats();
+    updateTalentScore(data, score);
+
+    // if (data.diamondCount < 10) {
+    // updateOBSImages();
+    // }
   }
 
   if (window.settings.showGifts === "0") return;
@@ -788,7 +758,7 @@ connection.on('gift', (data) => {
     } else if (String(data.receiverUserDetails.userId) === String(team2.userId)) {
       targetTeam = { teamNumber: 2, userId: team2.userId };
     }
-    
+
     if (targetTeam) {
       // Determine the skill level based on diamondCount
       let skill = "";
@@ -803,17 +773,17 @@ connection.on('gift', (data) => {
       } else if (data.diamondCount >= 1500) {
         skill = "skill5";
       }
-      
+
       // Construct the OBS source name accordingly.
       const sourceName = `team${targetTeam.teamNumber}_${targetTeam.userId}_${skill}`;
-      
+
       // Trigger OBS video source; now we rely on MediaInputPlaybackEnded
       triggerOBSVideo(sourceName);
     }
   }
 });
 
-function updateOBSImages(competitor1,competitor2) {
+function updateOBSImages(competitor1, competitor2) {
   //debug with consolelog
 
   console.log('team1 userId:', JSON.stringify(competitor1.userId));
@@ -831,7 +801,7 @@ function updateOBSImages(competitor1,competitor2) {
   }
 
   // Use the avatarFilePath property from the talent object
-  
+
   // Create a map from talents array for fast lookup by userId
   // const talentsMap = talents.reduce((acc, talent) => {
   //   acc[talent.userId] = talent.avatarFilePath; // Using the avatarFilePath property here
@@ -904,19 +874,19 @@ async function setOBSVisibility(sourceName, visible) {
 
 // share, follow
 connection.on('social', (data) => {
-    if (window.settings.showFollows === "0") return;
+  if (window.settings.showFollows === "0") return;
 
-    let color = data.displayType.includes('follow') ? '#ff005e' : '#2fb816';
-    addChatItem(color, data, data.label.replace('{0:user}', ''));
+  let color = data.displayType.includes('follow') ? '#ff005e' : '#2fb816';
+  addChatItem(color, data, data.label.replace('{0:user}', ''));
 })
 
 connection.on('streamEnd', () => {
-    $('#stateText').text('Stream ended.');
+  $('#stateText').text('Stream ended.');
 
-    // schedule next try if obs username set
-    if (window.settings.username) {
-        setTimeout(() => {
-            connect(window.settings.username);
-        }, 30000);
-    }
+  // schedule next try if obs username set
+  if (window.settings.username) {
+    setTimeout(() => {
+      connect(window.settings.username);
+    }, 30000);
+  }
 })

@@ -1,18 +1,23 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>HELIOS TALENT</title>
 
-    <meta name="description" content="A chat reader for TikTok LIVE utilizing TikTok-Live-Connector and Socket.IO to forward the data to the client. This demo project uses the unofficial TikTok API to retrieve chat comments, gifts and other events from TikTok LIVE.">
-    <meta name="keywords" content="TikTok,Live,Livestream,Chat,Reader,Scraper,Tracker,tiktok.com,broadcast,api,library,node,node.js,javascript">
+    <meta name="description"
+        content="A chat reader for TikTok LIVE utilizing TikTok-Live-Connector and Socket.IO to forward the data to the client. This demo project uses the unofficial TikTok API to retrieve chat comments, gifts and other events from TikTok LIVE.">
+    <meta name="keywords"
+        content="TikTok,Live,Livestream,Chat,Reader,Scraper,Tracker,tiktok.com,broadcast,api,library,node,node.js,javascript">
 
     <link rel="stylesheet" href="style.css">
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"  crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.4.1/socket.io.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"
+        referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.4.1/socket.io.min.js" crossorigin="anonymous"
+        referrerpolicy="no-referrer"></script>
     <script src="https://cdn.jsdelivr.net/npm/obs-websocket-js"></script>
 
 
@@ -22,36 +27,37 @@
     <script>
         window.settings = Object.fromEntries(new URLSearchParams(location.search));
         // window.settings = {username: 'kxg.acespace'}
-        function manualUpdateScore(input){
+        function manualUpdateScore(input) {
             console.log('onchange input', input)
             let score = parseInt(input.value);
-            if(score === 'NaN'){
+            // if(score === 'NaN'){
+            if (isNaN(score)) {
                 console.log('not a number', input.value);
-                input.value = talents.find(talent => talent.nickname === input.previousElementSibling.previousElementSibling.innerText).receiveDiamond; 
+                input.value = talents.find(talent => talent.nickname === input.previousElementSibling.previousElementSibling.innerText).receiveDiamond || 0;
                 return;
             }
             //update talent score and UI
             let talent = talents.find(t => t.nickname === input.previousElementSibling.previousElementSibling.innerText);
             talent.receiveDiamond = score;
             input.previousElementSibling.innerText = talent.score + talent.receiveDiamond;
-            
+
             //update RoomStats
             updateRoomStats();
-            
-          
+
+
             connection.updateLogFile({
                 msgId: 'manual',
                 timestamp: Number(Date.now()),
             }, talents);
         }
-        
-        function updateLog(button){
-            if(button.classList.contains('active')) return;
+
+        function updateLog(button) {
+            if (button.classList.contains('active')) return;
             const dataInfo = button.getAttribute('data-info');
             const decodedData = decodeURIComponent(dataInfo); // Decode safely
-            console.log('decodedData',decodedData);
+            console.log('decodedData', decodedData);
             const data = JSON.parse(decodedData); // Parse into JSON
-            console.log('dataLog',data); // Now data is accessible safely
+            console.log('dataLog', data); // Now data is accessible safely
             //match the button text nickname to the talents to find the talent
             let talent = talents.find(t => t.nickname === button.innerText);
             let previousTalent = null;
@@ -65,14 +71,14 @@
             //update active button
             //remove active class from all buttons
             button.parentElement.querySelectorAll('button').forEach(btn => {
-                if(btn.classList.contains('active')){
+                if (btn.classList.contains('active')) {
                     btn.classList.remove('active');
                     previousTalent = talents.find(t => t.nickname === btn.innerText);
                     //update score previous talent
                     previousTalent.score -= parseInt(score);
                     //update UI score previous talent
                     $('#groupmembers .memberContainer[data-userid="' + previousTalent.userId + '"] .memberScore')
-                        .text(previousTalent.score+previousTalent.receiveDiamond);
+                        .text(previousTalent.score + previousTalent.receiveDiamond);
                 }
             });
             //add active class to the clicked button
@@ -81,24 +87,150 @@
             talent.score += parseInt(score);
             //update UI score
             $('#groupmembers .memberContainer[data-userid="' + talent.userId + '"] .memberScore')
-                .text(talent.score+talent.receiveDiamond);
-        
+                .text(talent.score + talent.receiveDiamond);
+
             let receiversDetails = talents.map(t => {
                 const clonedTalent = structuredClone(t); // Deep copy
                 delete clonedTalent.score;
-                clonedTalent.receiveDiamond = (talent.userId === t.userId)?score:0;
+                clonedTalent.receiveDiamond = (talent.userId === t.userId) ? score : 0;
                 return clonedTalent;
-              });
-            console.log('receiversDetails',receiversDetails);
-            connection.updateLogFile(data,receiversDetails);
-           
+            });
+            console.log('receiversDetails', receiversDetails);
+            connection.updateLogFile(data, receiversDetails);
+
         }
-        
+        connection.on('reRender', (data) => {
+            console.log('reRender', data);
+            talents = JSON.parse(JSON.stringify(data[0].receiversDetails));
+            talents = talents.map(t => {
+                t.score = 0;
+                t.receiveDiamond = data[0].receiversDetails.find(talent => talent.userId === t.userId).receiveDiamond;
+                return t;
+            });
+            // Clear the group members container
+            var $groupMembers = $("#groupmembers");
+            $groupMembers.empty(); // Clear any existing content
+
+            // Iterate over each live member and build the HTML structure
+            $.each(talents, function (index, member) {
+                // Create container div
+                var $memberContainer = $('<div class="memberContainer"></div>').attr('data-userid', member.userId);
+
+                // Create the member avatar element (using the first URL)
+                var imgUrl = member.profilePicture.urls[0];
+                var $memberAvatar = $('<div class="memberAvatar"></div>').append(
+                    $('<img>').attr("src", imgUrl).attr("alt", member.$nickname)
+                );
+
+                // Create the member info element
+                var $memberInfo = $('<div class="memberInfo"></div>');
+                var $nickname = $('<div class="memberNickname"></div>').text(member.nickname);
+                // var $userId = $('<div class="memberId"></div>').text(member.userId);
+                var $score = $('<div class="memberScore"></div>').text(member.score + member.receiveDiamond);
+                var $input = $('<input class="manualScore" type="text" onchange="manualUpdateScore(this)" class="memberInput" placeholder="Enter score">');
+                $input.val(member.receiveDiamond);
+                $memberInfo.append($nickname, $score, $input);
+
+                // Append the avatar and info to the container
+                $memberContainer.append($memberAvatar, $memberInfo);
+
+                // Append the member container to the groupmembers container
+                $groupMembers.append($memberContainer);
+
+
+                //generate default receiversDetails
+                // receiversDetailsManual = talents.map(talent => {
+                //   const clonedTalent = structuredClone(talent); // Deep copy
+                //   delete clonedTalent.score;
+                //   clonedTalent.receiveDiamond = 0;
+                //   return clonedTalent;
+                // });
+            });
+            if (data && data.length > 0) {
+                let container = $('.giftcontainer');
+                container.empty();
+
+                data.slice(1).forEach(row => {
+                    let html = `
+                        <div data-streakid 
+                            style="background-color: ${row.diamondCount >= 199 && row.diamondCount <= 450 ? 'rgba(173, 216, 230, 0.4)' : // Light pastel blue
+                            row.diamondCount >= 451 && row.diamondCount <= 1400 ? 'rgba(135, 206, 250, 0.4)' : // Sky blue pastel
+                            row.diamondCount >= 1401 && row.diamondCount <= 3500 ? 'rgba(147, 112, 219, 0.4)' : // Light lavender pastel
+                            row.diamondCount >= 3501 && row.diamondCount <= 10000 ? 'rgba(186, 85, 211, 0.4)' : // Orchid pastel
+                            row.diamondCount >= 10001 && row.diamondCount <= 20000 ? 'rgba(218, 112, 214, 0.4)' : // Pale violet pastel
+                            row.diamondCount > 20000 ? 'rgba(221, 160, 221, 0.4)' : // Medium pastel purple
+                            'transparent'
+                        }; padding: 3px; margin-bottom: 1px; border-radius: 5px;"
+                        >
+                            <span>
+                                <b>${generateUsernameLink(row)}</b>
+                                <span>
+                                    ${row.describe}
+                                    <img class="gifticon" src="${row.giftPictureUrl}">
+                                    <b>x${row.repeatCount}</b>
+                                    (<b>${(row.diamondCount * row.repeatCount)} 🪙</b> - ${row.giftId}) to
+                                    <b>${row.receiverUserDetails ? `
+                                        ${generateUsernameLink(row.receiverUserDetails)}
+                                    ` : `
+                                        <a class="usernamelink" href="https://www.tiktok.com/@${talents[0].uniqueId}" target="_blank">
+                                        <img class="miniprofilepicture" src="${talents[0].profilePicture.urls[0]}">
+                                        ${talents[0].nickname}(${talents[0].uniqueId})
+                                        </a>
+                                    `}</b>
+                                </span>
+                                <br>
+                                <span>
+                                    ${[...talents].map(talent => `
+                                        <button
+                                        ${(row.receiversDetails.find(t => t.userId === talent.userId).receiveDiamond>0) ? 'class="active"' : ''}
+                                        data-info='${encodeURIComponent(JSON.stringify(row)).replace(/'/g, "%27")}'
+                                        onclick=updateLog(this)
+                                        >
+                                        ${talent.nickname}
+                                        </button>  
+                                    `).join('')}
+                                </span>
+                            </span>
+                        </div>
+                    `;
+
+                    container.prepend(html);
+                    //added score to the talent
+                    diamondsCount += row.diamondsTotal;
+                    let score = parseInt(row.diamondCount * row.repeatCount);
+                    let talent = talents.find(talent => talent.userId === row.receiversDetails.find(t=> t.receiveDiamond > 0).userId);
+                    if(talent){
+                        
+                        talent.score += score;
+                        $('#groupmembers .memberContainer[data-userid="' + talent.userId + '"] .memberScore')
+                            .text(talent.score+talent.receiveDiamond);
+                    }
+                    //         // let talent = talents.find(talent => talent.userId === log.userId);
+                    //         // if(talent){
+                    //         //     talent.score = log.score;
+                    //         //     $('#groupmembers .memberContainer[data-userid="' + log.userId + '"] .memberScore')
+                    //         //         .text(log.score+talent.receiveDiamond);
+                    //         // }
+                });
+                console.log('talents', talents);
+                //update RoomStats
+                updateRoomStats();
+                $('#stateText').text('Re-rendered');
+            } else {
+                $('#stateText').text('No data to re-render');
+            }
+        });
+        function reRender() {
+            const uniqueId = $('#uniqueIdInput').val();
+            connection.reRender(uniqueId);
+            $('#stateText').text('Re-rendering...');
+        }
     </script>
 </head>
+
 <body>
     <div class="head">
-        <h1>HELIOS TALENT</h1>     
+        <h1>HELIOS TALENT</h1>
     </div>
 
     <div class="inputFields">
@@ -107,6 +239,7 @@
         <input type="text" id="uniqueIdInput" placeholder="Enter username">
         <input type="button" id="connectButton" value="connect">
         <input type="button" id="uploadButton" value="upload" onclick="connection.uploadLogFile()">
+        <input type="button" id="reRenderButton" value="render" onclick="reRender()">
     </div>
     <!-- <div>
         <input type="text" id="tienkhiInput" placeholder="Enter tien khi score" value="1">
@@ -123,6 +256,7 @@
         <!-- <h3 class="containerheader">Chats</h3> -->
     </div>
 
-    
+
 </body>
+
 </html>

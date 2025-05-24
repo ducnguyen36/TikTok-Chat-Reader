@@ -41,14 +41,14 @@ const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwNZ6sGPf5vw99d
 async function uploadToAppsScript() {
     console.log('Uploading file to Apps Script...');
     // Check if the file exists
-    if (!fs.existsSync(filePath)){
+    if (!fs.existsSync(filePath)) {
         console.log('File does not exist:', filePath);
         return;
     }
 
     const fileContent = fs.readFileSync(filePath, 'utf-8');
 
-    
+
     if (isProcessing) {
         console.log("Log file is being processed. Waiting...");
         setTimeout(uploadToAppsScript, 30000); // Retry after 5 seconds
@@ -73,7 +73,19 @@ async function uploadToAppsScript() {
 }
 
 
+app.get('/get-log', (req, res) => {
+    if (!fs.existsSync(filename)) {
+        return res.json([]); // If no log file exists yet, return an empty array
+    }
 
+    fs.readFile(filename, 'utf8', (err, data) => {
+        if (err) {
+            console.error('Error reading log file:', err);
+            return res.status(500).send('Error reading log file');
+        }
+        res.json(JSON.parse(data)); // Return the parsed log data
+    });
+});
 
 // API route to save member avatars
 app.post('/saveMemberAvatars', (req, res) => {
@@ -92,8 +104,8 @@ app.post('/saveMemberAvatars', (req, res) => {
             console.log(`Deleted old file: ${file}`);
         });
     }
-      
-   
+
+
     console.log('is it empty?', fs.readdirSync(avatarsDir).length === 0);
     let processedCount = 0; // Track completed downloads
 
@@ -119,15 +131,15 @@ app.post('/saveMemberAvatars', (req, res) => {
             });
     });
 });
-  
-  // Serve the images from the 'memberAvatars' folder
-  app.use('/memberAvatars', express.static(path.join(__dirname, 'memberAvatars')));
+
+// Serve the images from the 'memberAvatars' folder
+app.use('/memberAvatars', express.static(path.join(__dirname, 'memberAvatars')));
 
 function logGift(logEntry) {
     return new Promise((resolve, reject) => {
         // Check for existing entry in giftQueue
         const existing = giftQueue.find(item => item.logEntry.msgId === logEntry.msgId);
-        
+
         if (existing) {
             // Update receiversDetails and optionally timestamp
             existing.logEntry.receiversDetails = logEntry.receiversDetails;
@@ -198,6 +210,26 @@ async function processQueue() {
     isProcessing = false;
 }
 
+/**
+ * Recursively gets all .json files in a directory and its subdirectories
+ */
+function getAllJsonFiles(dir, fileList = []) {
+  const files = fs.readdirSync(dir);
+
+  for (const file of files) {
+    const fullPath = path.join(dir, file);
+    const stat = fs.statSync(fullPath);
+
+    if (stat.isDirectory()) {
+      getAllJsonFiles(fullPath, fileList);
+    } else if (path.extname(fullPath) === '.json') {
+      fileList.push({ path: fullPath, birthtime: stat.birthtime });
+    }
+  }
+
+  return fileList;
+}
+
 io.on('connection', (socket) => {
     let tiktokConnectionWrapper;
 
@@ -248,47 +280,53 @@ io.on('connection', (socket) => {
         tiktokConnectionWrapper.connection.on('member', msg => socket.emit('member', msg));
         tiktokConnectionWrapper.connection.on('chat', msg => socket.emit('chat', msg));
         tiktokConnectionWrapper.connection.on('gift', msg => {
-            
-            socket.emit('gift', msg)
 
+            socket.emit('gift', msg)
+            // check if the gift repeat end
             //log the gift to the file
-            const logEntry = {
-                giftId: msg.giftId,
-                repeatCount: msg.repeatCount,
-                giftName: msg.giftName,
-                diamondCount: msg.diamondCount,
-                diamondsTotal: msg.repeatCount * msg.diamondCount,
-                giftPictureUrl: msg.giftPictureUrl,
-                receiverUserInGroupLive: msg.receiverUserInGroupLive || null,
-                userId: msg.userId,
-                uniqueId: msg.uniqueId,
-                nickname: msg.nickname,
-                profilePictureUrl: msg.profilePictureUrl || null,
-                gifterLevel: msg.gifterLevel,
-                teamMemberLevel: msg.teamMemberLevel,
-                msgId: msg.msgId,
-                timestamp: msg.timestamp,
-                receiversDetails: [] // Array for receiver details
-            }
-            // Find the receiver in the receiversDetails array
-            logEntry.receiversDetails = receiversDetails.map(receiver => {
-                if(!msg.receiverUserInGroupLive) {
-                    if(receiver.userId === msg.userId) {
-                        receiver.receiveDiamond = logEntry.diamondsTotal;
-                    }
-                }else if(receiver.nickname === msg.receiverUserInGroupLive) {
-                    receiver.receiveDiamond = logEntry.diamondsTotal;
+            if (msg.repeatEnd || msg.giftType !== 1) {
+                const logEntry = {
+                    giftId: msg.giftId,
+                    repeatCount: msg.repeatCount,
+                    giftName: msg.giftName,
+                    diamondCount: msg.diamondCount,
+                    diamondsTotal: msg.repeatCount * msg.diamondCount,
+                    giftPictureUrl: msg.giftPictureUrl,
+                    receiverUserInGroupLive: msg.receiverUserInGroupLive || null,
+                    userId: msg.userId,
+                    uniqueId: msg.uniqueId,
+                    nickname: msg.nickname,
+                    profilePictureUrl: msg.profilePictureUrl || null,
+                    gifterLevel: msg.gifterLevel,
+                    teamMemberLevel: msg.teamMemberLevel,
+                    msgId: msg.msgId,
+                    timestamp: msg.timestamp,
+                    receiversDetails: [] // Array for receiver details
                 }
-                return receiver;
-            })
-            console.log('JSON entry:', JSON.stringify(logEntry, null, 2));
-            // Append the log entry to the existing file
-            logGift(logEntry)
-            
+                //clone the receiversDetails array deeply so it won't be affected by the next log entry
+                const cloneReceiversDetails = JSON.parse(JSON.stringify(receiversDetails));
+                // Find the receiver in the receiversDetails array
+                logEntry.receiversDetails = cloneReceiversDetails.map(receiver => {
+                    if (!msg.receiverUserInGroupLive) {
+                        if (receiver.isHost) {
+                            receiver.receiveDiamond = logEntry.diamondsTotal;
+                        } else {
+                            receiver.receiveDiamond = 0;
+                        }
+                    } else if (receiver.nickname === msg.receiverUserInGroupLive) {
+                        receiver.receiveDiamond = logEntry.diamondsTotal;
+                    } else receiver.receiveDiamond = 0;
+                    return receiver;
+                })
+                console.log('JSON entry:', JSON.stringify(logEntry, null, 2));
+                // Append the log entry to the existing file
+                logGift(logEntry)
+            }
+
         });
         tiktokConnectionWrapper.connection.on('social', msg => socket.emit('social', msg));
         tiktokConnectionWrapper.connection.on('like', msg => {
-            console.log('Like Event',msg.totalLikeCount, oldLikeCount);
+            // console.log('Like Event',msg.totalLikeCount, oldLikeCount);
             // if(oldLikeCount){
             //     let increaseTienKhi = Math.floor((msg.totalLikeCount - oldLikeCount)/50);
             //     if(increaseTienKhi > 0) {
@@ -312,7 +350,36 @@ io.on('connection', (socket) => {
         tiktokConnectionWrapper.connection.on('envelope', msg => socket.emit('envelope', msg));
         tiktokConnectionWrapper.connection.on('subscribe', msg => socket.emit('subscribe', msg));
         tiktokConnectionWrapper.connection.on('liveMember', msg => socket.emit('liveMember', msg));
-        tiktokConnectionWrapper.connection.on('competition', msg => socket.emit('competition', msg));   
+        tiktokConnectionWrapper.connection.on('competition', msg => socket.emit('competition', msg));
+    });
+    socket.on('reRender', (uniqueId) => {
+        //find the last log file inside the folder with the same uniqueId
+        const logDir = path.join(__dirname, 'logs', uniqueId);
+        if (!fs.existsSync(logDir)) {
+            console.log('Log directory does not exist:', logDir);
+            return;
+        }
+        //get all json files inside the folder
+        const files = getAllJsonFiles(logDir);
+        if (files.length === 0) {
+            console.log('No log files found in directory:', logDir);
+            return;
+        }
+        //sort the files by birthtime
+        files.sort((a, b) => b.birthtime - a.birthtime);
+        //get the latest file
+        filePath = files[0].path;
+        console.log('Latest log file:', filePath);
+        //read the file and emit reRender event
+        fs.readFile(filePath, 'utf8', (err, data) => {
+            if (err) {
+                console.error('Error reading log file:', err);
+                return;
+            }
+            socket.emit('reRender', JSON.parse(data));
+            // console.info('reRender', JSON.parse(data));
+        });
+
     });
     socket.on('uploadLogFile', () => {
         console.info('uploadLogFile', filePath);
@@ -320,9 +387,11 @@ io.on('connection', (socket) => {
         uploadToAppsScript();
     });
     socket.on('updateLogFile', (data, receiversDetails) => {
-        
-        receiversDetails = receiversDetails.map(receiver => {
+        //clone the receiversDetails array deeply so it won't be affected by the next log entry
+        const cloneReceiversDetails = JSON.parse(JSON.stringify(receiversDetails));
+        receiversDetails = cloneReceiversDetails.map(receiver => {
             delete receiver.score;
+            return receiver;
         })
         let logEntry = {
             giftId: data.giftId || 0,
@@ -345,13 +414,27 @@ io.on('connection', (socket) => {
         console.log('JSON entry:', JSON.stringify(logEntry, null, 2));
         logGift(logEntry)
 
-        
+
     })
-    
+
     socket.on('initLogFile', (talents) => {
         //tien khi
         tienkhi = 0;
 
+        //if filePath exists, and has the same uniqueId, then emit rerender to client
+        if (filePath && filePath.includes(talents[0].uniqueId)) {
+            console.info('File path already exists, re-rendering...');
+            fs.readFile(filePath, 'utf8', (err, data) => {
+                if (err) {
+                    console.error('Error reading log file:', err);
+                    return res.status(500).send('Error reading log file');
+                }
+                // res.json(JSON.parse(data)); // Return the parsed log data
+                socket.emit('reRender', JSON.parse(data));
+                console.info('reRender', JSON.parse(data));
+                return;
+            });
+        }
         console.info("initLogFile", talents);
         //check if folder exists or else create it
         //logDir will be logs/tyht/MMYY
@@ -373,7 +456,7 @@ io.on('connection', (socket) => {
             return talent;
         })
         console.log('Log file path:', filePath);
-        console.log('receivers',receiversDetails)
+        console.log('receivers', receiversDetails)
         const logEntry = [{
             userId: 'manual',
             nickname: 'manual',
@@ -394,7 +477,7 @@ io.on('connection', (socket) => {
     });
     socket.on('disconnect', () => {
         //remove uploadInterval
-        if(uploadInterval) {
+        if (uploadInterval) {
             clearInterval(uploadInterval);
             uploadInterval = null;
         }
