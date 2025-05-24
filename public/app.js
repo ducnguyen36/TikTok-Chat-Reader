@@ -63,6 +63,7 @@ function connect() {
 
     $('#stateText').text('Connecting...');
     talents = [];
+    roomState = null;
     connection.connect(uniqueId, proxy, {
       enableExtendedGiftInfo: true
       // processInitialData: false,
@@ -520,17 +521,19 @@ connection.on('liveMember', (msg) => {
   saveAvatarsAndGetPaths(talents);
   // Adding the whole group as a member
   if (roomState) {
-    talents.unshift({
-      userId: roomState?.roomId || 'group',
-      uniqueId: roomState?.roomInfo?.owner?.display_id || 'group',
-      nickname: roomState?.roomInfo?.owner?.nickname || 'group',
-      profilePicture: {
-        urls: roomState?.roomInfo.cover?.url_list || ['https://cdn4.iconfinder.com/data/icons/avatar-1-2/100/Avatar-16-512.png']
-      },
-      score: 0,
-      receiveDiamond: 0,
-      isHost: true
-    });
+    if(!talents[0].isHost){
+      talents.unshift({
+        userId: roomState?.roomId || 'group',
+        uniqueId: roomState?.roomInfo?.owner?.display_id || 'group',
+        nickname: roomState?.roomInfo?.owner?.nickname || 'group',
+        profilePicture: {
+          urls: roomState?.roomInfo.cover?.url_list || ['https://cdn4.iconfinder.com/data/icons/avatar-1-2/100/Avatar-16-512.png']
+        },
+        score: 0,
+        receiveDiamond: 0,
+        isHost: true
+      });
+    }
     console.log('Members with Group', talents);
 
     // Clear the group members container
