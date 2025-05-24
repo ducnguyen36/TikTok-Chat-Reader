@@ -55,7 +55,11 @@ class TikTokIOConnection {
             }, 15000);
         });
     }
-
+    disconnect() {
+        this.socket.emit('tiktokDisconnected');
+        this.uniqueId = null;
+        this.uniqueIdSet = false;
+    }
     setUniqueId() {
         this.uniqueIdSet = true; // đánh dấu đã gửi uniqueId
         this.socket.emit('setUniqueId', this.uniqueId, this.options, this.proxy);
@@ -76,6 +80,7 @@ class TikTokIOConnection {
         console.info("reRender");
         this.socket.emit('reRender', uniqueId);
     }
+
     on(eventName, eventHandler) {
         this.socket.on(eventName, eventHandler);
     }

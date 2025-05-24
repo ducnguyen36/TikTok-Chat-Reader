@@ -490,6 +490,21 @@ io.on('connection', (socket) => {
             tiktokConnectionWrapper.disconnect();
         }
     });
+    socket.on('tiktokDisconnected', (errMsg) => {
+         //remove uploadInterval
+        if (uploadInterval) {
+            clearInterval(uploadInterval);
+            uploadInterval = null;
+        }
+        console.info('Client disconnected, stopping upload interval');
+        //final upload to apps script
+        uploadToAppsScript();
+        console.info('Client disconnected');
+        // Disconnect the TikTok connection wrapper if it exists
+        if (tiktokConnectionWrapper) {
+            tiktokConnectionWrapper.disconnect();
+        }
+    });
     socket.on('testing', (data) => {
         // console.log('testing', data);
         // tienkhi += parseInt(data);

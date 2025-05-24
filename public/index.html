@@ -137,14 +137,6 @@
                 // Append the member container to the groupmembers container
                 $groupMembers.append($memberContainer);
 
-
-                //generate default receiversDetails
-                // receiversDetailsManual = talents.map(talent => {
-                //   const clonedTalent = structuredClone(talent); // Deep copy
-                //   delete clonedTalent.score;
-                //   clonedTalent.receiveDiamond = 0;
-                //   return clonedTalent;
-                // });
             });
             if (data && data.length > 0) {
                 let container = $('.giftcontainer');
@@ -205,12 +197,6 @@
                         $('#groupmembers .memberContainer[data-userid="' + talent.userId + '"] .memberScore')
                             .text(talent.score+talent.receiveDiamond);
                     }
-                    //         // let talent = talents.find(talent => talent.userId === log.userId);
-                    //         // if(talent){
-                    //         //     talent.score = log.score;
-                    //         //     $('#groupmembers .memberContainer[data-userid="' + log.userId + '"] .memberScore')
-                    //         //         .text(log.score+talent.receiveDiamond);
-                    //         // }
                 });
                 console.log('talents', talents);
                 //update RoomStats
@@ -240,6 +226,7 @@
         <input type="button" id="connectButton" value="connect">
         <input type="button" id="uploadButton" value="upload" onclick="connection.uploadLogFile()">
         <input type="button" id="reRenderButton" value="render" onclick="reRender()">
+        <input type="button" id="disconnectButton" value="disconnect" onclick="connection.disconnect()">
     </div>
     <!-- <div>
         <input type="text" id="tienkhiInput" placeholder="Enter tien khi score" value="1">
