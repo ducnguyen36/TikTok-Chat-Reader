@@ -8,8 +8,10 @@ let likeCount = 0;
 let diamondsCount = 0;
 
 let scoreTemp = [];
+let round = 0;
 var talents = [];
 let roomState;
+let isVoting = false;
 
 //create obs instance
 const obs = new OBSWebSocket();
@@ -100,9 +102,11 @@ function connect() {
           // Create the member avatar element (using the first URL)
           var imgUrl = member.profilePicture.urls[0];
           var $memberAvatar = $('<div class="memberAvatar"></div>').append(
-            $('<img>').attr("src", imgUrl).attr("alt", member.$nickname)
+            $('<img>').attr("src", imgUrl).attr("alt", member.nickname)
           );
-
+          $memberAvatar.click((e) => {
+            $('#idVoting').val(e.target.alt)
+          });
           // Create the member info element
           var $memberInfo = $('<div class="memberInfo"></div>');
           var $nickname = $('<div class="memberNickname"></div>').text(member.nickname);
@@ -157,9 +161,11 @@ function connect() {
           // Create the member avatar element (using the first URL)
           var imgUrl = member.profilePicture.urls[0];
           var $memberAvatar = $('<div class="memberAvatar"></div>').append(
-            $('<img>').attr("src", imgUrl).attr("alt", member.$nickname)
+            $('<img>').attr("src", imgUrl).attr("alt", member.nickname)
           );
-
+          $memberAvatar.click((e) => {
+            $('#idVoting').val(e.target.alt)
+          });
           // Create the member info element
           var $memberInfo = $('<div class="memberInfo"></div>');
           var $nickname = $('<div class="memberNickname"></div>').text(member.nickname);
@@ -246,7 +252,8 @@ function addChatItem(color, data, text, summarize) {
 function addGiftItem(data) {
   console.log(data);
   let container = location.href.includes('obs.html') ? $('.eventcontainer') : $('.giftcontainer');
-
+  //if is voting, the gift that send to without receiverUserDetails will be update receiverUserDetails based on the nickname in #idVoting
+  
   let streakId = data.userId.toString() + '_' + data.giftId;
 
   let html = `
@@ -521,7 +528,7 @@ connection.on('liveMember', (msg) => {
   saveAvatarsAndGetPaths(talents);
   // Adding the whole group as a member
   if (roomState) {
-    if(!talents[0].isHost){
+    if (!talents[0].isHost) {
       talents.unshift({
         userId: roomState?.roomId || 'group',
         uniqueId: roomState?.roomInfo?.owner?.display_id || 'group',
@@ -548,9 +555,11 @@ connection.on('liveMember', (msg) => {
       // Create the member avatar element (using the first URL)
       var imgUrl = member.profilePicture.urls[0];
       var $memberAvatar = $('<div class="memberAvatar"></div>').append(
-        $('<img>').attr("src", imgUrl).attr("alt", member.$nickname)
+        $('<img>').attr("src", imgUrl).attr("alt", member.nickname)
       );
-
+      $memberAvatar.click((e) => {
+        $('#idVoting').val(e.target.alt)
+      });
       // Create the member info element
       var $memberInfo = $('<div class="memberInfo"></div>');
       var $nickname = $('<div class="memberNickname"></div>').text(member.nickname);
@@ -719,6 +728,35 @@ function updateTalentScore(giftData, calculatedScore) {
 
 
 connection.on('gift', (data) => {
+  data.round = round;
+  let nickname = $('#idVoting').val();
+  if (isVoting && !data.receiverUserDetails) {
+    //make deep copy of talents
+    let talentsCopy = structuredClone(talents);
+    let receiverUserDetails = talentsCopy.find(talent => talent.nickname === nickname);
+    if (receiverUserDetails) {
+      receiverUserDetails.profilePictureUrl = receiverUserDetails.profilePicture.urls[0];
+      data.receiverUserDetails = receiverUserDetails;
+      //also update receiverUserInGroupLive
+      data.receiverUserInGroupLive = nickname;
+    }
+    if(!isPendingStreak(data)) {
+      //prepare the data to upload log file
+      let talentData = structuredClone(talents);
+      talentData.forEach(talent => {
+        // Remove score
+        delete talent.score;
+        talent.receiveDiamond = 0; // Reset receiveDiamond for each talent
+        // Add receiveDiamond based on receiverUserDetails in giftData
+        if (talent.nickname === data.receiverUserInGroupLive) {
+          talent.receiveDiamond = data.diamondCount * data.repeatCount;
+        }
+      });
+      // Emit the gift data to the server for logging
+      connection.updateLogFile(data, talentData);
+
+    }
+  }
   if (data.diamondCount > 0) {
     // Track ongoing streaks and calculate the correct score
     let score = data.diamondCount * data.repeatCount;
@@ -732,11 +770,20 @@ connection.on('gift', (data) => {
         score -= existingEntry.cost;
         scoreTemp = scoreTemp.filter(i => i.groupId !== groupId);
       }
+      if(nickname === data.receiverUserInGroupLive) {
+        connection.updateVote(score);
+      }    
 
       // If the streak is ongoing, store it
       if (!data.repeatEnd) {
         scoreTemp.push({ groupId, cost: data.diamondCount * data.repeatCount });
+        //update voting when streak is ongoing
       }
+      
+    }else {
+      if(nickname === data.receiverUserInGroupLive) {
+          connection.updateVote(score);
+      }   
     }
 
     // Update room stats and talent scores

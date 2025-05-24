@@ -38,6 +38,7 @@ class TikTokIOConnection {
         this.socket.emit('testing', parseInt(data));
     }
     connect(uniqueId, proxy=false, options) {
+        this.disconnect(); // Ngắt kết nối trước khi kết nối mới
         this.uniqueId = uniqueId;
         this.options = options || {};
         this.proxy = proxy;
@@ -80,7 +81,22 @@ class TikTokIOConnection {
         console.info("reRender");
         this.socket.emit('reRender', uniqueId);
     }
+    voting(nickname="HELIOS", duration, max=0){
+        isVoting = !!duration;
+        if(!duration)  $('#idVoting').val('');
+        console.info("voting", nickname, duration, max);
+        this.socket.emit('voting', nickname, duration*60, max);
+        
+    }
 
+    updateVote(score){
+        console.info("updateVote", score);
+        this.socket.emit('updateVote', score);
+    }
+    setRound(round){
+        console.info("setRound", round);
+        this.socket.emit('setRound', round);
+    }
     on(eventName, eventHandler) {
         this.socket.on(eventName, eventHandler);
     }

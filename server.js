@@ -15,7 +15,7 @@ const app = express();
 const httpServer = createServer(app);
 let giftQueue = [];
 let isProcessing = false;
-
+let round = 0;
 let uploadInterval = null;
 
 //use express to parse json
@@ -289,6 +289,7 @@ io.on('connection', (socket) => {
                     giftId: msg.giftId,
                     repeatCount: msg.repeatCount,
                     giftName: msg.giftName,
+                    round,
                     diamondCount: msg.diamondCount,
                     diamondsTotal: msg.repeatCount * msg.diamondCount,
                     giftPictureUrl: msg.giftPictureUrl,
@@ -352,8 +353,13 @@ io.on('connection', (socket) => {
         tiktokConnectionWrapper.connection.on('liveMember', msg => socket.emit('liveMember', msg));
         tiktokConnectionWrapper.connection.on('competition', msg => socket.emit('competition', msg));
     });
+    socket.on('voting', (nickname, duration, max) => {
+        console.info('voting', nickname, duration, max);
+        socket.broadcast.emit('voting', nickname, duration, max);
+    });
     socket.on('reRender', (uniqueId) => {
         //find the last log file inside the folder with the same uniqueId
+        
         const logDir = path.join(__dirname, 'logs', uniqueId);
         if (!fs.existsSync(logDir)) {
             console.log('Log directory does not exist:', logDir);
@@ -397,6 +403,7 @@ io.on('connection', (socket) => {
             giftId: data.giftId || 0,
             repeatCount: data.repeatCount || 0,
             giftName: data.giftName || '',
+            round: data.round || 0,
             diamondCount: data.diamondCount || 0,
             diamondsTotal: (data.repeatCount || 0) * (data.diamondCount || 0),
             giftPictureUrl: data.giftPictureUrl || '',
@@ -431,7 +438,7 @@ io.on('connection', (socket) => {
                 }
                 // res.json(JSON.parse(data)); // Return the parsed log data
                 socket.emit('reRender', JSON.parse(data));
-                console.info('reRender', JSON.parse(data));
+                // console.info('reRender', JSON.parse(data));
                 return;
             });
         }
@@ -462,6 +469,7 @@ io.on('connection', (socket) => {
             nickname: 'manual',
             uniqueId: 'manual',
             msgId: 'manual',
+            round: 0,
             repeatCount: 0,
             diamondCount: 0,
             diamondsTotal: 0,
@@ -474,6 +482,17 @@ io.on('connection', (socket) => {
         console.log('Log file created:', filePath);
         // Run every 5 minutes
         uploadInterval = setInterval(uploadToAppsScript, 5 * 60 * 1000);
+    });
+    socket.on('updateVote', (score) => {
+        console.info('updateVote', score);
+        //update the score in the receiversDetails array
+        socket.broadcast.emit('updateVote', score);
+    });
+    socket.on('setRound', (newRound) => {
+        console.info('setRound', newRound);
+        round = newRound;
+        // Emit the new round to all clients
+        io.emit('roundChanged', round);
     });
     socket.on('disconnect', () => {
         //remove uploadInterval

@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+   <meta charset="UTF-8" />
+   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+   <link rel="preconnect" href="https://fonts.googleapis.com">
+   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+   <link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&display=swap"
+      rel="stylesheet">
+   <title>Dynamic Ranking Grid</title>
+   <style>
+      :root {
+         --grid-gap: 0px;
+         --row-height: 36px;
+         --last-row-height: 20px;
+         --marquee-speed: 6s;
+         --text-gap: 10px;
+         --transition-duration: 0.5s;
+      }
+
+      body {
+         font-family: "Roboto", Arial, sans-serif;
+         margin: 20px;
+         white-space: nowrap;
+         overflow: hidden;
+         color: white;
+      }
+
+      #container {
+         position: relative;
+         width: 648px;
+         /* height: 735px; */
+         /* height: 800px; */
+         overflow: hidden;
+         /* border: 1px solid #ccc; */
+         border-radius: 10px;
+         background-color: rgba(0, 0, 0, 0.8);
+
+         padding: 16px 0;
+      }
+
+      .title {
+         font-size: 1em;
+         margin-bottom: 12px;
+         margin-left: 18px;
+         color: #b3b3b3;
+         font-weight: 200;
+      }
+
+      #ranking-grid {
+         position: relative;
+         /* display: grid;
+         grid-template-columns: 37px 93px 70px;
+         grid-auto-rows: var(--row-height);
+         gap: var(--grid-gap);
+         width: 305px; */
+
+      }
+
+      .row {
+         display: grid;
+         grid-template-columns: 37px 93px 85px 85px 85px 85px 85px 85px;
+         position: absolute;
+         left: 0;
+         right: 0;
+         transition: transform var(--transition-duration);
+         height: var(--row-height);
+         overflow: hidden;
+      }
+
+      .row.last {
+         height: var(--last-row-height);
+      }
+
+      .cell {
+         display: flex;
+         align-items: center;
+         justify-content: center;
+         /* border: 1px solid #ccc; */
+         padding: 0;
+         overflow: hidden;
+         position: relative;
+         height: 22px;
+      }
+
+      .cell.name {
+         justify-content: flex-start;
+         font-weight: 300;
+      }
+
+      .marquee {
+         display: inline-flex;
+         animation: scroll var(--marquee-speed) linear infinite;
+      }
+
+      .marquee span {
+         padding-right: var(--text-gap);
+      }
+
+      @keyframes scroll {
+         0% {
+            transform: translateX(0%);
+         }
+
+         100% {
+            transform: translateX(-50%);
+         }
+      }
+
+      .rank-number {
+         font-size: 1em;
+         font-weight: 400;
+         /* font-weight: bold; */
+         /* line-height: 1; */
+         z-index: 2;
+      }
+
+      .crown {
+         position: absolute;
+         bottom: 3px;
+         width: 24px;
+         height: 24px;
+         visibility: hidden;
+         overflow: hidden;
+      }
+
+      .crown img {
+         width: 72px;
+         /* sprite width = 3 crowns * 24px each */
+         height: 54px;
+         object-fit: fill;
+         object-position: 0 0;
+      }
+
+      /* top-row: gold at 0px, silver at -24px, bronze at -48px */
+      .crown.gold img {
+         visibility: visible;
+         object-position: 0 0;
+      }
+
+      .crown.silver img {
+         visibility: visible;
+         object-position: -24px 0;
+      }
+
+      .crown.bronze img {
+         visibility: visible;
+         object-position: -48px 0;
+      }
+
+      .score {
+         font-size: 1.1em;
+         font-weight: bold;
+         justify-content: left;
+         padding-left: 5px;
+      }
+   </style>
+</head>
+
+<body>
+   <div id="container">
+      <div class="title" for="">Helios Crown</div>
+      <div id="rankingGrid"></div>
+   </div>
+
+   <script>
+      // Sprite sheet with 3 crowns side-by-side: gold | silver | bronze
+      const crownSrc = '/images/crowns.png'; // Adjust the path as needed
+
+      //array of 20 contenstants
+      let player = ["NVX BIN", "NVX L", "NVX DLEE", "NVX SHIN",
+         "RDNV CICI", "RDNV LILY", "RDNV CHANEE", "RDNV HANNIE", "RDNV ZELZI", "RDNV WINA",
+         "TYHT ĐẠO TIÊN", "TYHT HỒ YÊU", "TYHT BẠCH XÀ", "TYHT CHUỘT TINH",
+         "KZN YOUNG D", "KZN CARO", "KZN PUDY", "KZN HISSHIN", "KZN MIKE", "KZN KRYS"
+      ];
+      //generate data with random scores
+      let data = player.map((name, index) => {
+         const group = Math.floor(Math.random() * 10000);
+         const round1 = Math.floor(Math.random() * 10000);
+         const round2 = Math.floor(Math.random() * 10000);
+         const roundPk = Math.floor(Math.random() * 10000);
+         const round3 = Math.floor(Math.random() * 10000);
+         return {
+            name,
+            score: group+roundPk+round1+round2+round3,
+            group,
+            round1,
+            round2,
+            roundPk,
+            round3,
+         }
+         
+      });
+      const grid = document.getElementById('rankingGrid');
+      const container = document.getElementById('container');
+      // calculate grid height
+      const gridHeight = (data.length) * parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--row-height'))
+         + parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--last-row-height'))
+         + document.querySelector('.title').offsetHeight + parseFloat(getComputedStyle(document.querySelector('.title')).marginBottom) + 1;      
+      // set container height
+      container.style.height = gridHeight + 'px';
+
+      // Initialize grid with title rows
+      const titleRow = document.createElement('div');
+      titleRow.className = 'row';
+      titleRow.style.height = '20px';
+      titleRow.style.transform = 'translateY(0px)';
+      titleRow.style.backgroundColor = 'rgba(0, 0, 0, 0.6)';
+      titleRow.style.fontWeight = 'bold';
+      titleRow.style.fontSize = '1em';
+      titleRow.style.textAlign = 'center';
+      titleRow.style.color = '#b3b3b3';
+      titleRow.innerHTML = `
+         <div class="cell">Rank</div>
+         <div class="cell name">Name</div>
+         <div class="cell score">Score</div>
+         <div class="cell score">Group</div>
+         <div class="cell score">Round 1</div>
+         <div class="cell score">Round 2</div>
+         <div class="cell score">Round PK</div>
+         <div class="cell score">Round 3</div>   
+      `;
+      grid.appendChild(titleRow);
+      // Initialize rows
+      data.forEach(item => {
+         const row = document.createElement('div');
+         row.className = 'row';
+         row.dataset.name = item.name;
+         // rank number
+         const rankCell = document.createElement('div');
+         rankCell.className = 'cell';
+         const num = document.createElement('div');
+         num.className = 'rank-number';
+         rankCell.appendChild(num);
+         row.appendChild(rankCell);
+         // name cell
+         const nameCell = document.createElement('div');
+         nameCell.className = 'cell name';
+         const marqueeElement = document.createElement('div');
+         marqueeElement.className = 'marquee';
+         const span1 = document.createElement('span');
+         span1.textContent = item.name;
+         const span2 = document.createElement('span');
+         span2.textContent = item.name;
+         marqueeElement.appendChild(span1);
+         marqueeElement.appendChild(span2);
+         nameCell.appendChild(marqueeElement);
+         row.appendChild(nameCell);
+         // score cell
+         const scoreCell = document.createElement('div');
+         scoreCell.className = 'cell score';
+         row.appendChild(scoreCell);
+         //group cell
+         const groupCell = document.createElement('div');
+         groupCell.className = 'cell score group';
+         groupCell.textContent = item.group.toLocaleString();
+         row.appendChild(groupCell);
+         //round1 cell
+         const round1Cell = document.createElement('div');
+         round1Cell.className = 'cell score round1';
+         round1Cell.textContent = item.round1.toLocaleString();
+         row.appendChild(round1Cell);
+         //round2 cell
+         const round2Cell = document.createElement('div');
+         round2Cell.className = 'cell score round2';
+         round2Cell.textContent = item.round2.toLocaleString();
+         row.appendChild(round2Cell);
+         //roundPk cell
+         const roundPkCell = document.createElement('div');
+         roundPkCell.className = 'cell score roundPk';
+         roundPkCell.textContent = item.roundPk.toLocaleString();
+         row.appendChild(roundPkCell);
+         //round3 cell
+         const round3Cell = document.createElement('div');
+         round3Cell.className = 'cell score round3';
+         round3Cell.textContent = item.round3.toLocaleString();
+         row.appendChild(round3Cell);
+
+         // crown container
+         const crown = document.createElement('div');
+         crown.className = 'crown';
+         const img = document.createElement('img');
+         img.src = crownSrc;
+         img.alt = 'Crown';
+         crown.appendChild(img);
+         rankCell.appendChild(crown);
+
+         grid.appendChild(row);
+      });
+
+      function renderGrid() {
+         //sort data by score
+         data.sort((a, b) => b.score - a.score);
+         const rows = Array.from(grid.children);
+
+         data.forEach((item, index) => {
+            const row = rows.find(r => r.dataset.name == item.name);
+            // update content
+            row.querySelector('.rank-number').textContent = index + 1;
+            row.querySelector('.cell.score.group').textContent = item.group.toLocaleString(); // Format with commas
+            row.querySelector('.cell.score.round1').textContent = item.round1.toLocaleString(); // Format with commas
+            row.querySelector('.cell.score.round2').textContent = item.round2.toLocaleString(); // Format with commas
+            row.querySelector('.cell.score.roundPk').textContent = item.roundPk.toLocaleString(); // Format with commas
+            row.querySelector('.cell.score.round3').textContent = item.round3.toLocaleString(); // Format with commas
+            row.querySelector('.cell.score').textContent = item.score.toLocaleString(); // Format with commas
+            // crown class
+            row.classList.toggle('last', index === data.length - 1);
+            const crown = row.querySelector('.crown');
+            crown.className = 'crown ' + (index < 3 ? ['gold', 'silver', 'bronze'][index] : '');
+            // position
+            const y = (index+1) * parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--row-height'));
+            row.style.transform = `translateY(${y}px)`;
+         });
+        
+      }
+
+      renderGrid();
+
+      function updateScores(newScores) {
+         newScores.forEach(ns => {
+            const entry = data.find(d => d.name === ns.name);
+            if (entry) entry.score += ns.score;
+         });
+         renderGrid();
+      }
+
+      setInterval(() => {
+         const randIndex = Math.floor(Math.random() * data.length);
+         data[randIndex].group += Math.floor(Math.random() * 10000);
+         data[randIndex].round1 += Math.floor(Math.random() * 10000);
+         data[randIndex].round2 += Math.floor(Math.random() * 10000);
+         data[randIndex].roundPk += Math.floor(Math.random() * 10000);
+         data[randIndex].round3 += Math.floor(Math.random() * 10000);
+         data[randIndex].score = data[randIndex].group + data[randIndex].round1 + data[randIndex].round2 + data[randIndex].roundPk + data[randIndex].round3;
+         renderGrid();
+      }, 1000);
+   </script>
+
+</body>
+
+</html>
