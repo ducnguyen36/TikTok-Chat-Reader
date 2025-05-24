@@ -173,12 +173,12 @@
 
    <script>
       //init render the leaderboard
-      $('document').ready(function () {
-         // Initialize the connection
-      });
+      // $('document').ready(function () {
+      //    // Initialize the connection
+      // });
+      let data = [];
       connection.reRender("#rankingGrid")
       connection.on("reRender", rows => {
-         let data = [];
          console.log("reRender", rows);
          data = rows[0].receiversDetails.slice(1).map((item, index) => ({
             name: item.nickname,
@@ -201,27 +201,37 @@
          //sort data by score
          data.sort((a, b) => b.score - a.score);
          console.log("data", data);
+         initGrid(data);
       })
       // Sprite sheet with 3 crowns side-by-side: gold | silver | bronze
       const crownSrc = '/images/crowns.png'; // Adjust the path as needed
 
       //array of 20 contenstants
-      let player = ["NVX BIN", "NVX L", "NVX DLEE", "NVX SHIN",
-         "RDNV CICI", "RDNV LILY", "RDNV CHANEE", "RDNV HANNIE", "RDNV ZELZI", "RDNV WINA",
-         "TYHT ĐẠO TIÊN", "TYHT HỒ YÊU", "TYHT BẠCH XÀ", "TYHT CHUỘT TINH",
-         "KZN YOUNG D", "KZN CARO", "KZN PUDY", "KZN HISSHIN", "KZN MIKE", "KZN KRYS"
-      ];
-      //generate data with random scores
-      let data = player.map((name, index) => ({
-         name: name,
-         score: Math.floor(Math.random() * 1000000)
-      }));
-
+      // let player = ["NVX BIN", "NVX L", "NVX DLEE", "NVX SHIN",
+      //    "RDNV CICI", "RDNV LILY", "RDNV CHANEE", "RDNV HANNIE", "RDNV ZELZI", "RDNV WINA",
+      //    "TYHT ĐẠO TIÊN", "TYHT HỒ YÊU", "TYHT BẠCH XÀ", "TYHT CHUỘT TINH",
+      //    "KZN YOUNG D", "KZN CARO", "KZN PUDY", "KZN HISSHIN", "KZN MIKE", "KZN KRYS"
+      // ];
+      // //generate data with random scores
+      // data = player.map((name, index) => ({
+      //    name: name,
+      //    score: Math.floor(Math.random() * 1000000)
+      // }));
+      
+      const grid = document.getElementById('rankingGrid');
+      const container = document.getElementById('container');
       //create a function to render the grid
       function initGrid(data) {
-         const grid = document.getElementById('rankingGrid');
          grid.innerHTML = ''; // Clear existing content
-
+         // calculate grid height
+         const gridHeight = (data.length - 1) * parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--row-height'))
+            + parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--last-row-height'))
+            + document.querySelector('.title').offsetHeight + parseFloat(getComputedStyle(document.querySelector('.title')).marginBottom) + 1;
+         // set container height
+         container.style.height = gridHeight + 'px';
+         //set title to the round
+         const title = document.querySelector('.title');
+         title.textContent = `${round ? round.toUpperCase() : ''} Ranking List`;
 
          data.forEach((item, index) => {
             const row = document.createElement('div');
@@ -260,21 +270,20 @@
             // Crown container
             const crown = document.createElement('div');
             crown.className = 'crown';
-            if (index < 3) {
-               crown.classList.add(['gold', 'silver', 'bronze'][index]);
-               const img = document.createElement('img');
-               img.src = crownSrc;
-               img.alt = 'Crown';
-               crown.appendChild(img);
-               rankCell.appendChild(crown);
-            }
+            const img = document.createElement('img');
+            crown.classList.add(['gold', 'silver', 'bronze'][index]);
+            img.src = crownSrc;
+            img.alt = 'Crown';
+            crown.appendChild(img);
+            rankCell.appendChild(crown);
 
             grid.appendChild(row);
          });
+         renderGrid();
       }
 
-      const grid = document.getElementById('rankingGrid');
-      const container = document.getElementById('container');
+      // const grid = document.getElementById('rankingGrid');
+      // const container = document.getElementById('container');
       // calculate grid height
       const gridHeight = (data.length - 1) * parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--row-height'))
          + parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--last-row-height'))
@@ -336,8 +345,11 @@
             row.querySelector('.cell.score').textContent = item.score.toLocaleString(); // Format with commas
             // crown class
             row.classList.toggle('last', index === data.length - 1);
-            const crown = row.querySelector('.crown');
-            crown.className = 'crown ' + (index < 3 ? ['gold', 'silver', 'bronze'][index] : '');
+            
+            if(index<3){
+               const crown = row.querySelector('.crown');
+               crown.className = 'crown ' + (index < 3 ? ['gold', 'silver', 'bronze'][index] : '');
+            }
             // position
             const y = index * parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--row-height'));
             row.style.transform = `translateY(${y}px)`;
@@ -347,19 +359,37 @@
 
       renderGrid();
 
-      function updateScores(newScores) {
-         newScores.forEach(ns => {
-            const entry = data.find(d => d.name === ns.name);
-            if (entry) entry.score += ns.score;
+      // function updateScores(newScores) {
+      //    newScores.forEach(ns => {
+      //       const entry = data.find(d => d.name === ns.name);
+      //       if (entry) entry.score += ns.score;
+      //    });
+      //    renderGrid();
+      // }
+
+      // setInterval(() => {
+      //    const randIndex = Math.floor(Math.random() * data.length);
+      //    data[randIndex].score += Math.floor(Math.random() * 100000);
+      //    renderGrid();
+      // }, 1000);
+      connection.on("updateLeaderboard", giftData => {
+         console.log("updateLeaderboard", giftData);
+         const { receiversDetails, round } = giftData;
+         //check if which receiveDiamond in receiversDetails is > 0
+         receiversDetails.slice(1).forEach(item => {
+            const player = data.find(p => p.name === item.nickname);
+            if (player) {
+               if (!round || giftData.round === round)
+                  player.score += item.receiveDiamond;
+            } else {
+               data.push({
+                  name: item.nickname,
+                  score: item.receiveDiamond
+               });
+            }
          });
          renderGrid();
-      }
-
-      setInterval(() => {
-         const randIndex = Math.floor(Math.random() * data.length);
-         data[randIndex].score += Math.floor(Math.random() * 100000);
-         renderGrid();
-      }, 1000);
+      });
    </script>
 
 </body>

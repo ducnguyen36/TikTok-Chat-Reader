@@ -233,6 +233,8 @@ io.on('connection', (socket) => {
     let tiktokConnectionWrapper;
 
     console.info('New connection from origin', socket.handshake.headers['origin'] || socket.handshake.headers['referer']);
+    const origin = socket.handshake.headers['origin'] || socket.handshake.headers['referer'];
+    if(origin.length !== 'http://localhost:8082/') socket.emit('roundChanged', round);
     socket.on('setUniqueId', (uniqueId, options, proxy) => {
 
         // Prohibit the client from specifying these options (for security reasons)
@@ -321,6 +323,7 @@ io.on('connection', (socket) => {
                 console.log('JSON entry:', JSON.stringify(logEntry, null, 2));
                 // Append the log entry to the existing file
                 logGift(logEntry)
+                socket.broadcast.emit('updateLeaderboard', logEntry)
             }
 
         });
@@ -424,7 +427,7 @@ io.on('connection', (socket) => {
         }
         console.log('JSON entry:', JSON.stringify(logEntry, null, 2));
         logGift(logEntry)
-
+        socket.broadcast.emit('updateLeaderboard', logEntry);
 
     })
 

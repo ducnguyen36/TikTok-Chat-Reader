@@ -344,6 +344,9 @@ async function triggerOBSVideo(sourceName) {
 
 connection.on('roundChanged', (newRound) => {
   round = newRound;
+  if(location.href.includes('leaderboard.html')) {
+    connection.reRender("#rankingGrid");
+  }
 });
 
 connection.on('competition', (msg) => {
