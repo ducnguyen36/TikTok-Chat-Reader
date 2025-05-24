@@ -8,7 +8,6 @@ const path = require('path');
 const request = require('request'); // For downloading images
 const { OBSWebSocket } = require('obs-websocket-js');
 const { TikTokConnectionWrapper, getGlobalConnectionCount } = require('./connectionWrapper');
-const puppeteer = require('puppeteer');
 const { clientBlocked } = require('./limiter');
 
 const app = express();
@@ -359,22 +358,27 @@ io.on('connection', (socket) => {
     });
     socket.on('reRender', (uniqueId) => {
         //find the last log file inside the folder with the same uniqueId
-        
-        const logDir = path.join(__dirname, 'logs', uniqueId);
-        if (!fs.existsSync(logDir)) {
-            console.log('Log directory does not exist:', logDir);
+        if(uniqueId === '#rankingGrid' && !filePath){
             return;
+        }else{
+            if(uniqueId !== '#rankingGrid' ){
+                const logDir = path.join(__dirname, 'logs', uniqueId);
+                if (!fs.existsSync(logDir)) {
+                    console.log('Log directory does not exist:', logDir);
+                    return;
+                }
+                //get all json files inside the folder
+                const files = getAllJsonFiles(logDir);
+                if (files.length === 0) {
+                    console.log('No log files found in directory:', logDir);
+                    return;
+                }
+                //sort the files by birthtime
+                files.sort((a, b) => b.birthtime - a.birthtime);
+                //get the latest file
+                filePath = files[0].path;
+            }
         }
-        //get all json files inside the folder
-        const files = getAllJsonFiles(logDir);
-        if (files.length === 0) {
-            console.log('No log files found in directory:', logDir);
-            return;
-        }
-        //sort the files by birthtime
-        files.sort((a, b) => b.birthtime - a.birthtime);
-        //get the latest file
-        filePath = files[0].path;
         console.log('Latest log file:', filePath);
         //read the file and emit reRender event
         fs.readFile(filePath, 'utf8', (err, data) => {

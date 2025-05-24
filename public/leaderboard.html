@@ -8,6 +8,13 @@
    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
    <link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&display=swap"
       rel="stylesheet">
+   <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"
+      referrerpolicy="no-referrer"></script>
+   <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.4.1/socket.io.min.js" crossorigin="anonymous"
+      referrerpolicy="no-referrer"></script>
+   <script src="https://cdn.jsdelivr.net/npm/obs-websocket-js"></script>
+   <script src="connection.js"></script>
+   <script src="app.js"></script>
    <title>Dynamic Ranking Grid</title>
    <style>
       :root {
@@ -165,6 +172,36 @@
    </div>
 
    <script>
+      //init render the leaderboard
+      $('document').ready(function () {
+         // Initialize the connection
+      });
+      connection.reRender("#rankingGrid")
+      connection.on("reRender", rows => {
+         let data = [];
+         console.log("reRender", rows);
+         data = rows[0].receiversDetails.slice(1).map((item, index) => ({
+            name: item.nickname,
+            score: 0,
+         }));
+         rows.slice(1).forEach(row => {
+            row.receiversDetails.slice(1).forEach((item, index) => {
+               const player = data.find(p => p.name === item.nickname);
+               if (player) {
+                  if (!round || row.round === round)
+                     player.score += item.receiveDiamond;
+               } else {
+                  data.push({
+                     name: item.nickname,
+                     score: item.score
+                  });
+               }
+            });
+         });
+         //sort data by score
+         data.sort((a, b) => b.score - a.score);
+         console.log("data", data);
+      })
       // Sprite sheet with 3 crowns side-by-side: gold | silver | bronze
       const crownSrc = '/images/crowns.png'; // Adjust the path as needed
 
@@ -179,12 +216,69 @@
          name: name,
          score: Math.floor(Math.random() * 1000000)
       }));
+
+      //create a function to render the grid
+      function initGrid(data) {
+         const grid = document.getElementById('rankingGrid');
+         grid.innerHTML = ''; // Clear existing content
+
+
+         data.forEach((item, index) => {
+            const row = document.createElement('div');
+            row.className = 'row';
+            row.dataset.name = item.name;
+
+            // Rank number cell
+            const rankCell = document.createElement('div');
+            rankCell.className = 'cell';
+            const num = document.createElement('div');
+            num.className = 'rank-number';
+            num.textContent = index + 1;
+            rankCell.appendChild(num);
+            row.appendChild(rankCell);
+
+            // Name cell with marquee
+            const nameCell = document.createElement('div');
+            nameCell.className = 'cell name';
+            const marqueeElement = document.createElement('div');
+            marqueeElement.className = 'marquee';
+            const span1 = document.createElement('span');
+            span1.textContent = item.name;
+            const span2 = document.createElement('span');
+            span2.textContent = item.name;
+            marqueeElement.appendChild(span1);
+            marqueeElement.appendChild(span2);
+            nameCell.appendChild(marqueeElement);
+            row.appendChild(nameCell);
+
+            // Score cell
+            const scoreCell = document.createElement('div');
+            scoreCell.className = 'cell score';
+            scoreCell.textContent = item.score.toLocaleString(); // Format with commas
+            row.appendChild(scoreCell);
+
+            // Crown container
+            const crown = document.createElement('div');
+            crown.className = 'crown';
+            if (index < 3) {
+               crown.classList.add(['gold', 'silver', 'bronze'][index]);
+               const img = document.createElement('img');
+               img.src = crownSrc;
+               img.alt = 'Crown';
+               crown.appendChild(img);
+               rankCell.appendChild(crown);
+            }
+
+            grid.appendChild(row);
+         });
+      }
+
       const grid = document.getElementById('rankingGrid');
       const container = document.getElementById('container');
       // calculate grid height
-      const gridHeight = (data.length-1) * parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--row-height'))
+      const gridHeight = (data.length - 1) * parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--row-height'))
          + parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--last-row-height'))
-         + document.querySelector('.title').offsetHeight + parseFloat(getComputedStyle(document.querySelector('.title')).marginBottom) + 1;      
+         + document.querySelector('.title').offsetHeight + parseFloat(getComputedStyle(document.querySelector('.title')).marginBottom) + 1;
       // set container height
       container.style.height = gridHeight + 'px';
 
@@ -248,7 +342,7 @@
             const y = index * parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--row-height'));
             row.style.transform = `translateY(${y}px)`;
          });
-        
+
       }
 
       renderGrid();

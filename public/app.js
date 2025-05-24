@@ -342,6 +342,10 @@ async function triggerOBSVideo(sourceName) {
   await setOBSVisibility(sourceName, true);
 }
 
+connection.on('roundChanged', (newRound) => {
+  round = newRound;
+});
+
 connection.on('competition', (msg) => {
   console.log('Event competition', msg);
 
