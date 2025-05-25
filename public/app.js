@@ -12,6 +12,7 @@ let round = 0;
 var talents = [];
 let roomState;
 let isVoting = false;
+let groupVoting = false;
 
 //create obs instance
 const obs = new OBSWebSocket();
@@ -253,7 +254,7 @@ function addGiftItem(data) {
   console.log(data);
   let container = location.href.includes('obs.html') ? $('.eventcontainer') : $('.giftcontainer');
   //if is voting, the gift that send to without receiverUserDetails will be update receiverUserDetails based on the nickname in #idVoting
-  
+
   let streakId = data.userId.toString() + '_' + data.giftId;
 
   let html = `
@@ -344,10 +345,11 @@ async function triggerOBSVideo(sourceName) {
 
 connection.on('roundChanged', (newRound) => {
   round = newRound;
-  if(location.href.includes('leaderboard.html')) {
+  if (location.href.includes('leaderboard.html')) {
     connection.reRender("#rankingGrid");
   }
 });
+
 
 connection.on('competition', (msg) => {
   console.log('Event competition', msg);
@@ -718,7 +720,7 @@ connection.on('chat', (msg) => {
 function updateTalentScore(giftData, calculatedScore) {
   let talent = talents.find(t => t.nickname === giftData.receiverUserInGroupLive);
 
-  if (talent) {
+  if (talent && document.querySelector('[name="acceptVote"]').checked) {
     // Update the talent's score with the calculated value
     talent.score += calculatedScore;
 
@@ -737,17 +739,25 @@ function updateTalentScore(giftData, calculatedScore) {
 connection.on('gift', (data) => {
   data.round = round;
   let nickname = $('#idVoting').val();
-  if (isVoting && !data.receiverUserDetails) {
+  if (data.receiverUserInGroupLive) {
+    const receiverUser = talents.find(talent => talent.nickname === data.receiverUserInGroupLive);
+    if (!talents.uniqueId) {
+      receiverUser.uniqueId = data.receiverUserDetails?.uniqueId;
+    }
+  }
+  if (isVoting && round !== "group" && !data.receiverUserDetails && document.querySelector('[name="acceptVote"]').checked) {
     //make deep copy of talents
     let talentsCopy = structuredClone(talents);
     let receiverUserDetails = talentsCopy.find(talent => talent.nickname === nickname);
     if (receiverUserDetails) {
+
+
       receiverUserDetails.profilePictureUrl = receiverUserDetails.profilePicture.urls[0];
       data.receiverUserDetails = receiverUserDetails;
       //also update receiverUserInGroupLive
       data.receiverUserInGroupLive = nickname;
     }
-    if(!isPendingStreak(data)) {
+    if (!isPendingStreak(data)) {
       //prepare the data to upload log file
       let talentData = structuredClone(talents);
       talentData.forEach(talent => {
@@ -777,20 +787,23 @@ connection.on('gift', (data) => {
         score -= existingEntry.cost;
         scoreTemp = scoreTemp.filter(i => i.groupId !== groupId);
       }
-      if(nickname === data.receiverUserInGroupLive) {
+      if (isVoting && nickname === data.receiverUserInGroupLive && document.querySelector('[name="acceptVote"]').checked) {
         connection.updateVote(score);
-      }    
+      }
+      if (isVoting && groupVoting && document.querySelector('[name="acceptVote"]').checked) connection.updateVote(score);
 
       // If the streak is ongoing, store it
       if (!data.repeatEnd) {
         scoreTemp.push({ groupId, cost: data.diamondCount * data.repeatCount });
         //update voting when streak is ongoing
       }
-      
-    }else {
-      if(nickname === data.receiverUserInGroupLive) {
-          connection.updateVote(score);
-      }   
+
+    } else {
+      if (isVoting && nickname === data.receiverUserInGroupLive && document.querySelector('[name="acceptVote"]').checked) {
+        connection.updateVote(score);
+      }
+
+      if (isVoting && groupVoting && document.querySelector('[name="acceptVote"]').checked) connection.updateVote(score);
     }
 
     // Update room stats and talent scores

@@ -33,7 +33,7 @@
         updateScoreBar(score);
         connection.on('updateVote', (addScore) => {
             console.log('voting page new adding score', addScore)
-            if(timer < -7) return;
+            // if(timer < -7) return;
             score += addScore;
             updateScoreBar(score);
         });
@@ -56,7 +56,7 @@
             $('.max-score').css('visibility', 'hidden');
             updateScoreBar(0);
             $('.header-div h1').text(nickname.toUpperCase());
-            if(max){
+            if(max>0){
                 maxScore = max;
                 $('.header-div h1').text(nickname.toUpperCase() + ' STEAL MVP')
                 $('.score-bar').css('background-color', 'rgb(90, 3, 25)')
@@ -91,7 +91,7 @@
                $('.timer-div').text('.'.repeat(Math.abs(timer)));
             } else {
                clearInterval(interval);
-                if(max){
+                if(max>0){
                     if(score >= max) $('.timer-div').text('Success!');
                     else $('.timer-div').text('Failed!');
                 } else {

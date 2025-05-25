@@ -26,6 +26,10 @@
 
     <script>
         window.settings = Object.fromEntries(new URLSearchParams(location.search));
+        let novixScore = 0;
+        let rednovaScore = 0;
+        let kayzenScore = 0;
+        let tienyeuhoituScore = 0;
         // window.settings = {username: 'kxg.acespace'}
         function manualUpdateScore(input) {
             console.log('onchange input', input)
@@ -48,6 +52,7 @@
             connection.updateLogFile({
                 msgId: 'manual',
                 timestamp: Number(Date.now()),
+                round: 0
             }, talents);
         }
 
@@ -96,13 +101,15 @@
                 return clonedTalent;
             });
             console.log('receiversDetails', receiversDetails);
-            connection.updateLogFile(data, receiversDetails);
+            connection.updateLogFile(data, receiversDetails, previousTalent);
 
         }
-        connection.on('voting', (nickname, duration, max) => {
-            console.log('voting page new timer', nickname, duration, max)
+        
+        connection.on('reRender', data => {
+            console.log('reRender data index', data);
+            render(data);
         });
-
+            
         function render(data) {
             console.log('reRender', data);
             diamondsCount = 0;
@@ -150,6 +157,15 @@
                 container.empty();
 
                 data.slice(1).forEach(row => {
+                    //check if which receiversDetails has receiveDiamond > 0 row.receiverUserDetails init
+                    const receiverUserDetails = row.receiversDetails.find(t => t.receiveDiamond > 0);
+                    if (receiverUserDetails) {
+                        console.log('receiverUserDetails',receiverUserDetails, receiverUserDetails.profilePicture);
+                        receiverUserDetails.profilePictureUrl = receiverUserDetails.profilePicture.urls[0];
+                        data.receiverUserDetails = receiverUserDetails;
+                        //also update receiverUserInGroupLive
+                    }
+
                     let html = `
                         <div data-streakid 
                             style="background-color: ${row.diamondCount >= 199 && row.diamondCount <= 450 ? 'rgba(173, 216, 230, 0.4)' : // Light pastel blue
@@ -197,11 +213,13 @@
                     //added score to the talent
                     diamondsCount += row.diamondsTotal;
                     let score = parseInt(row.diamondCount * row.repeatCount);
-                    let talent = talents.find(talent => talent.userId === row.receiversDetails.find(t => t.receiveDiamond > 0).userId);
+                    let talent = talents.find(talent => talent.userId === row.receiversDetails.find(t => t.receiveDiamond > 0)?.userId);
+                    console.log('row', row, score, talent);
                     if (talent) {
                         //check if personalscore checkbox is checked
 
                         //get the score of the talent based on round
+                        console.log('talent', talent, row.round, round, row.round === round);
                         if (!round || row.round === round || $('input[name="personalScore"]').is(':checked')) talent.score += score;
                         $('#groupmembers .memberContainer[data-userid="' + talent.userId + '"] .memberScore')
                             .text(talent.score + talent.receiveDiamond);
@@ -215,9 +233,7 @@
                 $('#stateText').text('No data to re-render');
             }
         }
-        connection.on('reRender', data => {
-            render(data);
-        });
+       
         function reRender() {
             const uniqueId = $('#uniqueIdInput').val();
             connection.reRender(uniqueId);
@@ -226,10 +242,10 @@
         $('document').ready(function () {
             $('[name="round"]').on('click', function () {
                 round = this.value;
-                if(this.value ==='0') round = 0;
+                if (this.value === '0') round = 0;
                 console.log('Round selected:', round);
                 connection.setRound(round);
-                connection.reRender($('#uniqueIdInput').val()); //TODO: bug when user change uniqueIdInput and click reRender
+                connection.reRender(talents[0].nickname ==='group' ? 'group' : $('#uniqueIdInput').val()); //TODO: bug when user change uniqueIdInput and click reRender
 
             });
         });
@@ -255,7 +271,9 @@
         <input type="text" id="idVoting" placeholder="Click on the avatar">
         <input type="button" id="votingButton" value="voting"
             onclick="connection.voting(document.getElementById('idVoting').value, document.querySelector('input[name=\'duration\']:checked').value)">
-        <input type="button" id="stopVotingButton" value="stop voting" onclick="connection.voting('',0,0)">
+        <input type="button" id="stopVotingButton" value="stop votin" onclick="connection.voting('',0,0)">
+        <input type="button" id="countdownButton" value="countdown"
+            onclick="connection.countdown(document.querySelector('input[name=\'duration\']:checked').value)">
     </div>
     <div class="inputFields">
         <input type="radio" name="duration" value="1" checked>
@@ -286,8 +304,21 @@
         <label for="">round 3</label>
         <input type="checkbox" name="personalScore">
         <label for="">personal score</label>
-        <input type="checkbox" name="groupScore">
-        <label for="">group score</label>
+        <input type="checkbox" name="acceptVote" checked onclick="connection.toggleAcceptVote(this.checked)">
+        <label for="">Accept Vote</label>
+    </div>
+    <div class="inputFields">
+        <input type="radio" name="groupVote" value="nogroup" checked onclick="$('#idVoting').val('')">
+        <label for="">No group</label>
+        <input type="radio" name="groupVote" value="novix" onclick="$('#idVoting').val('Novix')">
+        <label for="">Novix</label>
+        <input type="radio" name="groupVote" value="rednova" onclick="$('#idVoting').val('Rednova')">
+        <label for="">Rednova</label>
+        <input type="radio" name="groupVote" value="kayzen" onclick="$('#idVoting').val('Kayzen')">
+        <label for="">Kayzen</label>
+        <input type="radio" name="groupVote" value="tienyeuhoitu" onclick="$('#idVoting').val('Tiên Yêu Hội Tụ')">
+        <label for="">Tiên Yêu Hội Tụ</label>
+
     </div>
     <!-- <div>
         <input type="text" id="tienkhiInput" placeholder="Enter tien khi score" value="1">

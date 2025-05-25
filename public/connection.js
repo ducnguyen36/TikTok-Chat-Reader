@@ -18,7 +18,7 @@ class TikTokIOConnection {
             // Reset flag khi mất kết nối để setUniqueId lại khi kết nối lại
             this.uniqueIdSet = false;
         });
-        
+
         this.socket.on('streamEnd', () => {
             console.warn("LIVE has ended!");
             this.uniqueId = null;
@@ -33,11 +33,11 @@ class TikTokIOConnection {
             }
         });
     }
-    testing(data){
+    testing(data) {
         console.info("testing", data);
         this.socket.emit('testing', parseInt(data));
     }
-    connect(uniqueId, proxy=false, options) {
+    connect(uniqueId, proxy = false, options) {
         this.disconnect(); // Ngắt kết nối trước khi kết nối mới
         this.uniqueId = uniqueId;
         this.options = options || {};
@@ -65,35 +65,53 @@ class TikTokIOConnection {
         this.uniqueIdSet = true; // đánh dấu đã gửi uniqueId
         this.socket.emit('setUniqueId', this.uniqueId, this.options, this.proxy);
     }
-    initLogFile(talents){
+    initLogFile(talents) {
         console.info("initLogFile", talents);
         this.socket.emit('initLogFile', talents);
     }
-    updateLogFile(data,talents){
-        console.info("updateLogFile", data, talents);
-        this.socket.emit('updateLogFile', data, talents);
+    updateLogFile(data, talents, previousTalent) {
+        console.info("updateLogFile", data, talents, previousTalent);
+        this.socket.emit('updateLogFile', data, talents, previousTalent);
     }
-    uploadLogFile(){
+    uploadLogFile() {
         console.info("uploadLogFile");
         this.socket.emit('uploadLogFile');
     }
-    reRender(uniqueId){
-        console.info("reRender");
+    reRender(uniqueId) {
+        console.info("reRender", uniqueId);
         this.socket.emit('reRender', uniqueId);
     }
-    voting(nickname="HELIOS", duration, max=0){
+    voting(nickname = "HELIOS", duration, max = 0) {
         isVoting = !!duration;
-        if(!duration)  $('#idVoting').val('');
-        console.info("voting", nickname, duration, max);
-        this.socket.emit('voting', nickname, duration*60, max);
+        groupVoting = document.querySelector('[name=round]:checked').value === 'group';
+        if (!duration) $('#idVoting').val('');
+        if(isVoting){
+            document.querySelector('[name="acceptVote"]').checked = true;
+            this.toggleAcceptVote(true);
+        }
+        if (groupVoting && isVoting) {
+            max = -100;
+        }
         
-    }
+        console.info("voting", nickname, duration, max);
+        this.socket.emit('voting', nickname, duration * 60, max);
 
-    updateVote(score){
+    }
+    countdown(duration) {
+        document.querySelector('[name="acceptVote"]').checked = true;
+        this.toggleAcceptVote(true);
+        console.info("countdown", duration);
+        this.socket.emit('countdown', duration * 60);
+    }
+    toggleAcceptVote(accept) {
+        console.info("toggleAcceptVote", accept);
+        this.socket.emit('toggleAcceptVote', accept);
+    }
+    updateVote(score) {
         console.info("updateVote", score);
         this.socket.emit('updateVote', score);
     }
-    setRound(round){
+    setRound(round) {
         console.info("setRound", round);
         this.socket.emit('setRound', round);
     }

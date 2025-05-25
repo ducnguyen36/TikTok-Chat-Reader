@@ -16,6 +16,9 @@ let giftQueue = [];
 let isProcessing = false;
 let round = 0;
 let uploadInterval = null;
+let groupVoting = false;
+let groupName = '';
+isAcceptVote = true; // Default to accepting votes
 
 //use express to parse json
 app.use(express.json());
@@ -32,8 +35,6 @@ const io = new Server(httpServer, {
 
 var receiversDetails = [];
 var filePath = '';
-var tienkhi = 0;
-var oldLikeCount = 0;
 
 const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwNZ6sGPf5vw99dq05D4wOkSLGyyBP-fmi5sNMtgM6yS1OQRGB21l5Ay041edkeZysm/exec';
 
@@ -290,7 +291,8 @@ io.on('connection', (socket) => {
                     giftId: msg.giftId,
                     repeatCount: msg.repeatCount,
                     giftName: msg.giftName,
-                    round,
+                    round: isAcceptVote ? round : 0,
+                    group: (round === 'group' && groupVoting) ? groupName : '',
                     diamondCount: msg.diamondCount,
                     diamondsTotal: msg.repeatCount * msg.diamondCount,
                     giftPictureUrl: msg.giftPictureUrl,
@@ -324,6 +326,10 @@ io.on('connection', (socket) => {
                 // Append the log entry to the existing file
                 logGift(logEntry)
                 socket.broadcast.emit('updateLeaderboard', logEntry)
+                if(groupVoting && groupName) {
+                    //if group voting is enabled, emit the groupVoting event
+                    socket.broadcast.emit('updateLeaderboardGroup', groupName, logEntry);
+                }
             }
 
         });
@@ -357,7 +363,26 @@ io.on('connection', (socket) => {
     });
     socket.on('voting', (nickname, duration, max) => {
         console.info('voting', nickname, duration, max);
+        if(max === -100){
+            groupVoting = true;
+            groupName = nickname;
+        }else{
+            groupVoting = false;
+            groupName = '';
+        }
         socket.broadcast.emit('voting', nickname, duration, max);
+    });
+    socket.on('countdown', (duration) => {
+        console.info('countdown', duration);
+        socket.broadcast.emit('countdown', duration);
+    });
+    socket.on('toggleAcceptVote', (accept) => {
+        console.info('toggleAcceptVote', accept);
+        isAcceptVote = accept
+        if(!accept) {
+            groupVoting = false; // Reset group voting if accept is false
+            groupName = '';
+        }
     });
     socket.on('reRender', (uniqueId) => {
         //find the last log file inside the folder with the same uniqueId
@@ -392,14 +417,13 @@ io.on('connection', (socket) => {
             socket.emit('reRender', JSON.parse(data));
             // console.info('reRender', JSON.parse(data));
         });
-
     });
     socket.on('uploadLogFile', () => {
         console.info('uploadLogFile', filePath);
         //upload the file to apps script
         uploadToAppsScript();
     });
-    socket.on('updateLogFile', (data, receiversDetails) => {
+    socket.on('updateLogFile', (data, receiversDetails, previousTalent) => {
         //clone the receiversDetails array deeply so it won't be affected by the next log entry
         const cloneReceiversDetails = JSON.parse(JSON.stringify(receiversDetails));
         receiversDetails = cloneReceiversDetails.map(receiver => {
@@ -410,7 +434,8 @@ io.on('connection', (socket) => {
             giftId: data.giftId || 0,
             repeatCount: data.repeatCount || 0,
             giftName: data.giftName || '',
-            round: data.round || 0,
+            round: isAcceptVote? data.round || 0 : 0,
+            group: data.group,
             diamondCount: data.diamondCount || 0,
             diamondsTotal: (data.repeatCount || 0) * (data.diamondCount || 0),
             giftPictureUrl: data.giftPictureUrl || '',
@@ -427,7 +452,7 @@ io.on('connection', (socket) => {
         }
         console.log('JSON entry:', JSON.stringify(logEntry, null, 2));
         logGift(logEntry)
-        socket.broadcast.emit('updateLeaderboard', logEntry);
+        socket.broadcast.emit('updateLeaderboard', logEntry, previousTalent);
 
     })
 

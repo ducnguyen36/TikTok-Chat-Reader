@@ -167,13 +167,22 @@
 
 <body>
    <div id="container">
-      <div class="title" for="">Ranking list</div>
+      <div class="title" for="">Group Ranking</div>
       <div id="rankingGrid"></div>
    </div>
 
    <script>
 
-      let data = [];
+
+      //generate data with 4 groups Novix, Rednova, Kayzen, Tiên Yêu Hội Tụ after 
+      const data = [
+         { name: 'Novix', score: 0 },
+         { name: 'Rednova', score: 0 },
+         { name: 'Kayzen', score: 0 },
+         { name: 'Tiên Yêu Hội Tụ', score: 0 }
+      ];
+      
+
       connection.reRender("#rankingGrid")
 
       function formatTime(seconds) {
@@ -181,55 +190,29 @@
          const ss = String(seconds % 60).padStart(2, '0');
          return `${mm}:${ss}`;
       }
-      //countdown socket event
-      let interval
-      connection.on("countdown", duration => {
-         const title = document.querySelector('.title');
-         title.textContent = `${round ? round.toUpperCase() : 'Helios Crown War'} ${formatTime(duration)}` 
-         
-         //clear any existing interval
-         if (interval) {
-            clearInterval(interval);
-         }
-
-         //set interval to update the title every second
-         let timer = duration;
-         interval = setInterval(() => {
-            if (timer > 0) {
-               title.textContent = `${round ? round.toUpperCase() : ''} ${formatTime(timer)}`;
-            }else {
-               clearInterval(interval);
-               title.textContent = `${round ? round.toUpperCase() : ''} End!`;
-            }
-            timer--;
-         }, 1000);
-
-
-      });
+     
 
       connection.on("reRender", rows => {
          //clear existing interval
-         if (interval) {
-            clearInterval(interval);
-         }
-         console.log("reRender", rows);
-         data = rows[0].receiversDetails.slice(1).map((item, index) => ({
-            name: item.nickname,
-            score: 0,
-         }));
+        
+         console.log("reRenderGroup", rows);
+         
          rows.slice(1).forEach(row => {
-            row.receiversDetails.slice(1).forEach((item, index) => {
-               const player = data.find(p => p.name === item.nickname);
-               if (player) {
-                  if (!round || row.round === round)
-                     player.score += item.receiveDiamond;
+            if(row.round === 'group'){
+               const group = data.find(g => g.name === row.group);
+               if (group) {
+                  group.score += row.diamondsTotal;
                } else {
-                  data.push({
-                     name: item.nickname,
-                     score: item.score
-                  });
+                  if (row.group) {   
+                     data.push({
+                        name: row.group,
+                        score: row.diamondsTotal
+                     });
+                  }
                }
-            });
+
+            }
+
          });
          //sort data by score
          data.sort((a, b) => b.score - a.score);
@@ -252,8 +235,8 @@
          // set container height
          container.style.height = gridHeight + 'px';
          //set title to the round
-         const title = document.querySelector('.title');
-         title.textContent = `${round ? round.toUpperCase() : 'Helios Crown War'}`;
+         // const title = document.querySelector('.title');
+         // title.textContent = `${round ? round.toUpperCase() : ''}`;
 
          data.forEach((item, index) => {
             const row = document.createElement('div');
@@ -270,7 +253,6 @@
             row.appendChild(rankCell);
 
             // Name cell with marquee
-            
             const nameCell = document.createElement('div');
             nameCell.className = 'cell name';
             const text = document.createElement('div');
@@ -300,7 +282,7 @@
             // marqueeElement.appendChild(span1);
             // marqueeElement.appendChild(span2);
             // nameCell.appendChild(marqueeElement);
-            row.appendChild(nameCell);
+            // row.appendChild(nameCell);
 
             // Score cell
             const scoreCell = document.createElement('div');
@@ -332,7 +314,7 @@
       // // set container height
       // container.style.height = gridHeight + 'px';
 
-      // // Initialize rows
+      // Initialize rows
       // data.forEach(item => {
       //    const row = document.createElement('div');
       //    row.className = 'row';
@@ -373,7 +355,7 @@
 
       //    grid.appendChild(row);
       // });
-
+      initGrid(data);
       function renderGrid() {
          //sort data by score
          data.sort((a, b) => b.score - a.score);
@@ -398,7 +380,7 @@
 
       }
 
-      renderGrid();
+      // renderGrid();
 
       // function updateScores(newScores) {
       //    newScores.forEach(ns => {
@@ -413,32 +395,19 @@
       //    data[randIndex].score += Math.floor(Math.random() * 100000);
       //    renderGrid();
       // }, 1000);
-      connection.on("updateLeaderboard", (giftData, previousTalent) => {
-         console.log("updateLeaderboard", giftData);
-         console.log("previousTalent", previousTalent);
-
-         const { receiversDetails, round:roundData } = giftData;
-         console.log('roundData', roundData);
-         console.log('round', round);
-         if (round && roundData !== round) return;
-         //check if which receiveDiamond in receiversDetails is > 0
-         receiversDetails.slice(1).forEach(item => {
-            const player = data.find(p => p.name === item.nickname);
-            console.log("player", player, player ? player.score : 0);
-            if (previousTalent) {
-               const previousPlayer = data.find(p => p.name === previousTalent.nickname);
-               console.log("previousPlayer", previousPlayer, previousPlayer ? previousPlayer.score : 0);
-               if (previousPlayer) previousPlayer.score -= item.receiveDiamond;
-            }
-            if (player) {
-               player.score += item.receiveDiamond;
-            } else {
-               data.push({
-                  name: item.nickname,
-                  score: item.receiveDiamond
-               });
-            }
-         });
+      connection.on("updateLeaderboardGroup", (groupName, giftData) => {
+         console.log("updateLeaderboardGroup", giftData);
+         console.log("groupName", groupName);
+         //added score to the group with groupName
+         const group = data.find(g => g.name === groupName);
+         if (group) {
+            group.score += giftData.diamondsTotal;
+         } else {
+            data.push({
+               name: groupName,
+               score: giftData.diamondsTotal
+            });
+         }
          renderGrid();
       });
    </script>
