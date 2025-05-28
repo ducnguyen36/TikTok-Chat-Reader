@@ -271,9 +271,16 @@
         <input type="text" id="idVoting" placeholder="Click on the avatar">
         <input type="button" id="votingButton" value="voting"
             onclick="connection.voting(document.getElementById('idVoting').value, document.querySelector('input[name=\'duration\']:checked').value)">
-        <input type="button" id="stopVotingButton" value="stop votin" onclick="connection.voting('',0,0)">
+        <input type="button" id="stopVotingButton" value="stop voting" onclick="connection.voting('',0,0)">
         <input type="button" id="countdownButton" value="countdown"
             onclick="connection.countdown(document.querySelector('input[name=\'duration\']:checked').value)">
+    </div>
+    <div class="inputFields">
+        <label>Point: </label>
+        <input type="text" id="SavePoint">
+        <input type="button" id="chasingButton" value="chasing"
+            onclick="connection.voting(document.getElementById('idVoting').value, document.querySelector('input[name=\'duration\']:checked').value,
+            document.getElementById('SavePoint').value)">
     </div>
     <div class="inputFields">
         <input type="radio" name="duration" value="1" checked>
@@ -282,12 +289,12 @@
         <label for="">2 min</label>
         <input type="radio" name="duration" value="3">
         <label for="">3 min</label>
+        <input type="radio" name="duration" value="4">
+        <label for="">4 min</label>
         <input type="radio" name="duration" value="5">
         <label for="">5 min</label>
         <input type="radio" name="duration" value="7">
         <label for="">7 min</label>
-        <input type="radio" name="duration" value="10">
-        <label for="">10 min</label>
     </div>
     <div class="inputFields">
         <input type="radio" name="round" value="0" checked>
@@ -296,18 +303,20 @@
         <label for="">round 1</label>
         <input type="radio" name="round" value="round2">
         <label for="">round 2</label>
-        <input type="radio" name="round" value="roundPK">
-        <label for="">round PK</label>
         <input type="radio" name="round" value="round3">
         <label for="">round 3</label>
+        <input type="radio" name="round" value="roundPK">
+        <label for="">round PK</label>
         <input type="radio" name="round" value="round4">
         <label for="">round 4</label>
+        <input type="radio" name="round" value="round5">
+        <label for="">round 5</label>
         <input type="checkbox" name="personalScore">
         <label for="">personal score</label>
         <input type="checkbox" name="acceptVote" checked onclick="connection.toggleAcceptVote(this.checked)">
         <label for="">Accept Vote</label>
     </div>
-    <div class="inputFields">
+    <!-- <div class="inputFields">
         <input type="radio" name="groupVote" value="nogroup" checked onclick="$('#idVoting').val('')">
         <label for="">No group</label>
         <input type="radio" name="groupVote" value="novix" onclick="$('#idVoting').val('Novix')">
@@ -319,7 +328,7 @@
         <input type="radio" name="groupVote" value="tienyeuhoitu" onclick="$('#idVoting').val('Tiên Yêu Hội Tụ')">
         <label for="">Tiên Yêu Hội Tụ</label>
 
-    </div>
+    </div> -->
     <!-- <div>
         <input type="text" id="tienkhiInput" placeholder="Enter tien khi score" value="1">
         <input type="button" id="tienkhiButton" value="tienkhi" onclick="connection.testing(document.getElementById('tienkhiInput').value)">

@@ -12,7 +12,9 @@ let round = 0;
 var talents = [];
 let roomState;
 let isVoting = false;
+let isChasing = false;
 let groupVoting = false;
+hideRowMembers = [];
 
 //create obs instance
 const obs = new OBSWebSocket();
@@ -774,6 +776,36 @@ connection.on('gift', (data) => {
 
     }
   }
+  if (isChasing && document.querySelector('[name="acceptVote"]').checked) {
+    //make deep copy of talents
+    let talentsCopy = structuredClone(talents);
+    let receiverUserDetails = talentsCopy.find(talent => talent.nickname === nickname);
+    if (receiverUserDetails) {
+
+
+      receiverUserDetails.profilePictureUrl = receiverUserDetails.profilePicture.urls[0];
+      data.receiverUserDetails = receiverUserDetails;
+      //also update receiverUserInGroupLive
+      data.receiverUserInGroupLive = nickname;
+    }
+    if (!isPendingStreak(data)) {
+      //prepare the data to upload log file
+      let talentData = structuredClone(talents);
+      talentData.forEach(talent => {
+        // Remove score
+        delete talent.score;
+        talent.receiveDiamond = 0; // Reset receiveDiamond for each talent
+        // Add receiveDiamond based on receiverUserDetails in giftData
+        if (talent.nickname === data.receiverUserInGroupLive) {
+          talent.receiveDiamond = data.diamondCount * data.repeatCount;
+        }
+      });
+      // Emit the gift data to the server for logging
+      connection.updateLogFile(data, talentData);
+
+    }
+  }
+
   if (data.diamondCount > 0) {
     // Track ongoing streaks and calculate the correct score
     let score = data.diamondCount * data.repeatCount;

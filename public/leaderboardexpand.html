@@ -67,7 +67,7 @@
 
       .row {
          display: grid;
-         grid-template-columns: 37px 93px 85px 85px 85px 85px 85px 85px;
+         grid-template-columns: 37px 37px 93px 85px 85px 85px 85px 85px 85px;
          position: absolute;
          left: 0;
          right: 0;
@@ -237,6 +237,7 @@
          titleRow.style.textAlign = 'center';
          titleRow.style.color = '#b3b3b3';
          titleRow.innerHTML = `
+         <div class="cell">X</div>
          <div class="cell">Rank</div>
          <div class="cell name">Name</div>
          <div class="cell score">Score</div>
@@ -256,6 +257,27 @@
             row.className = 'row';
             row.dataset.name = item.name;
 
+            // Rank checkbox cell
+            const checkboxCell = document.createElement('div');
+            checkboxCell.className = 'cell';
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.className = 'rank-checkbox';
+            checkboxCell.appendChild(checkbox);
+            row.appendChild(checkboxCell);
+            $('[type=checkbox]').on('change', function () {
+               hideRowMembers = [];
+               $('.rank-checkbox').each(function () {
+                  if ($(this).is(':checked')) {
+                     console.log("checked", $(this).closest('.row').attr('data-name'));
+                     hideRowMembers.push($(this).closest('.row').attr('data-name'));
+
+                  }
+               });
+               console.log("hideRowMembers", hideRowMembers);
+               connection.hideRanking(hideRowMembers);
+            });
+            
             // Rank number cell
             const rankCell = document.createElement('div');
             rankCell.className = 'cell';
@@ -470,6 +492,7 @@
 
          data.forEach((item, index) => {
             const row = rows.find(r => r.dataset.name == item.name);
+            console.log("row", row);
             // update content
             row.querySelector('.rank-number').textContent = index + 1;
             row.querySelector('.cell.score.group').textContent = item.group.toLocaleString(); // Format with commas

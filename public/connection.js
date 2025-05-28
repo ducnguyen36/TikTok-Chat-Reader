@@ -82,9 +82,13 @@ class TikTokIOConnection {
         this.socket.emit('reRender', uniqueId);
     }
     voting(nickname = "HELIOS", duration, max = 0) {
-        isVoting = !!duration;
+        isVoting = !!duration && max===0;
+        isChasing = !!duration && max>0;
         groupVoting = document.querySelector('[name=round]:checked').value === 'group';
         if (!duration) $('#idVoting').val('');
+        if(max>0) {
+            isVoting = false;
+        }
         if(isVoting){
             document.querySelector('[name="acceptVote"]').checked = true;
             this.toggleAcceptVote(true);
@@ -96,6 +100,10 @@ class TikTokIOConnection {
         console.info("voting", nickname, duration, max);
         this.socket.emit('voting', nickname, duration * 60, max);
 
+    }
+    hideRanking(hideMembers) {
+        console.info("hideRanking", hideMembers);
+        this.socket.emit('hideRanking', hideMembers);
     }
     countdown(duration) {
         document.querySelector('[name="acceptVote"]').checked = true;
