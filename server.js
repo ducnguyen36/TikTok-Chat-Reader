@@ -384,6 +384,11 @@ io.on('connection', (socket) => {
             groupName = '';
         }
     });
+    socket.on('hideRanking', (hideMembers) => {
+        console.info('hideRanking', hideMembers);
+        // Emit the hideRanking event to all clients
+        socket.broadcast.emit('hideRanking', hideMembers);
+    });
     socket.on('reRender', (uniqueId) => {
         //find the last log file inside the folder with the same uniqueId
         if(uniqueId === '#rankingGrid' && !filePath){

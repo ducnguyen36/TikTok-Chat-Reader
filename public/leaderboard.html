@@ -140,6 +140,10 @@
          object-position: 0 0;
       }
 
+      .danger {
+         color: rgb(172, 171, 171)
+      }
+
       /* top-row: gold at 0px, silver at -24px, bronze at -48px */
       .crown.gold img {
          visibility: visible;
@@ -174,6 +178,7 @@
    <script>
 
       let data = [];
+      let safeRanking = 20;
       connection.reRender("#rankingGrid")
 
       function formatTime(seconds) {
@@ -185,8 +190,8 @@
       let interval
       connection.on("countdown", duration => {
          const title = document.querySelector('.title');
-         title.textContent = `${round ? round.toUpperCase() : 'Helios Crown War'} ${formatTime(duration)}` 
-         
+         title.textContent = `${round ? round.toUpperCase() : 'Helios Crown War'} ${formatTime(duration)}`
+
          //clear any existing interval
          if (interval) {
             clearInterval(interval);
@@ -197,7 +202,7 @@
          interval = setInterval(() => {
             if (timer > 0) {
                title.textContent = `${round ? round.toUpperCase() : ''} ${formatTime(timer)}`;
-            }else {
+            } else {
                clearInterval(interval);
                title.textContent = `${round ? round.toUpperCase() : ''} End!`;
             }
@@ -213,21 +218,28 @@
             clearInterval(interval);
          }
          console.log("reRender", rows);
-         data = rows[0].receiversDetails.slice(1).map((item, index) => ({
-            name: item.nickname,
-            score: 0,
-         }));
+         data = rows[0].receiversDetails
+            .slice(1)
+            .filter(item => !hideRowMembers || !hideRowMembers.length || !hideRowMembers.includes(item.nickname))
+            .map((item, index) => ({
+               name: item.nickname,
+               score: 0,
+            }));
+         console.log("filtered rows", rows);
+
          rows.slice(1).forEach(row => {
             row.receiversDetails.slice(1).forEach((item, index) => {
                const player = data.find(p => p.name === item.nickname);
-               if (player) {
-                  if (!round || row.round === round)
-                     player.score += item.receiveDiamond;
-               } else {
-                  data.push({
-                     name: item.nickname,
-                     score: item.score
-                  });
+               if (!hideRowMembers || !hideRowMembers.length || !hideRowMembers.includes(item.nickname)) {
+                  if (player) {
+                     if (!round || row.round !== 'roundPK')
+                        player.score += item.receiveDiamond;
+                  } else {
+                     data.push({
+                        name: item.nickname,
+                        score: item.score
+                     });
+                  }
                }
             });
          });
@@ -254,10 +266,17 @@
          //set title to the round
          const title = document.querySelector('.title');
          title.textContent = `${round ? round.toUpperCase() : 'Helios Crown War'}`;
-
+         if(round === 'round1'){
+            safeRanking = 20;
+         }else if (round === 'round2' || round === 'round3') {
+            safeRanking = 8;
+         }else if (round === 'round4' || round === 'round5') {
+            safeRanking = 3;
+         }
          data.forEach((item, index) => {
             const row = document.createElement('div');
             row.className = 'row';
+            row.classList.toggle('danger', index >= safeRanking);
             row.dataset.name = item.name;
 
             // Rank number cell
@@ -270,7 +289,7 @@
             row.appendChild(rankCell);
 
             // Name cell with marquee
-            
+
             const nameCell = document.createElement('div');
             nameCell.className = 'cell name';
             const text = document.createElement('div');
@@ -413,11 +432,17 @@
       //    data[randIndex].score += Math.floor(Math.random() * 100000);
       //    renderGrid();
       // }, 1000);
+      connection.on("hideRanking", (hideMembers) => {
+         console.log("hideRanking", hideMembers);
+         hideRowMembers = hideMembers;
+         connection.reRender("#rankingGrid");
+         // initGrid(data);
+      });
       connection.on("updateLeaderboard", (giftData, previousTalent) => {
          console.log("updateLeaderboard", giftData);
          console.log("previousTalent", previousTalent);
 
-         const { receiversDetails, round:roundData } = giftData;
+         const { receiversDetails, round: roundData } = giftData;
          console.log('roundData', roundData);
          console.log('round', round);
          if (round && roundData !== round) return;

@@ -27,7 +27,15 @@
             $('.score-progress').css('width', percent + '%');
             $('.score-number').text(score);
             if($('.max-score').css('visibility') === 'visible'){
-                $('.max-score').text((maxScore - score > 0)? 'OVER +' + (maxScore - score): 'STEAL!');
+                if(score >= maxScore) {
+                  ('.max-score').text('OVER + 0');
+                  $('.score-bar').css('background-color', 'rgb(90, 3, 25)')
+                  $('.score-progress').css('background', 'linear-gradient(to right, rgb(236, 26, 79),rgb(231, 110, 141))')
+                
+                }else {
+                  $('.max-score').text('OVER +' + (maxScore - score))  
+                }
+                // $('.max-score').text((maxScore - score > 0)? 'OVER +' + (maxScore - score): 'STEAL!');
             }
         }
         updateScoreBar(score);
@@ -54,14 +62,16 @@
             $('.score-progress').css('background', 'none')
             $('.score-progress').css('background-color', 'cyan')
             $('.max-score').css('visibility', 'hidden');
+            // $('.max-score').css("color","white");
             updateScoreBar(0);
             $('.header-div h1').text(nickname.toUpperCase());
             if(max>0){
                 maxScore = max;
-                $('.header-div h1').text(nickname.toUpperCase() + ' STEAL MVP')
-                $('.score-bar').css('background-color', 'rgb(90, 3, 25)')
-                $('.score-progress').css('background', 'linear-gradient(to right, rgb(236, 26, 79),rgb(231, 110, 141))')
+                $('.header-div h1').text(nickname.toUpperCase())
+                // $('.score-bar').css('background-color', 'rgb(90, 3, 25)')
+                // $('.score-progress').css('background', 'linear-gradient(to right, rgb(236, 26, 79),rgb(231, 110, 141))')
                 $('.max-score').text('OVER + ' + max);
+                $('.max-score').css("color","white");
                 $('.max-score').css('visibility', 'visible');
             }
             
