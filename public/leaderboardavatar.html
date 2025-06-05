@@ -19,8 +19,8 @@
    <style>
       :root {
          --grid-gap: 0px;
-         --row-height: 36px;
-         --last-row-height: 20px;
+         --row-height: 80px;
+         --last-row-height: 65px;
          --marquee-speed: 6s;
          --text-gap: 10px;
          --transition-duration: 0.5s;
@@ -36,7 +36,7 @@
 
       #container {
          position: relative;
-         width: 223px;
+         width: 188px;
          /* height: 735px; */
          /* height: 800px; */
          overflow: hidden;
@@ -67,7 +67,7 @@
 
       .row {
          display: grid;
-         grid-template-columns: 37px 93px 85px;
+         grid-template-columns: 37px 55px 93px;
          position: absolute;
          left: 0;
          right: 0;
@@ -88,7 +88,7 @@
          padding: 0;
          overflow: hidden;
          position: relative;
-         height: 22px;
+         height: 50px;
       }
 
       .cell.name {
@@ -125,7 +125,7 @@
 
       .crown {
          position: absolute;
-         bottom: 3px;
+         bottom: 16px;
          width: 24px;
          height: 24px;
          visibility: hidden;
@@ -142,6 +142,15 @@
 
       .danger {
          color: rgb(172, 171, 171)
+      }
+
+      .details {
+         margin-top: 3px;
+         display: flex;
+         flex-direction: column;
+         justify-content: flex-start;
+         align-items: flex-start;
+         gap: 2px;
       }
 
       /* top-row: gold at 0px, silver at -24px, bronze at -48px */
@@ -224,6 +233,7 @@
             .map((item, index) => ({
                name: item.nickname,
                score: 0,
+               avatar: item.profilePicture.urls[0]
             }));
          console.log("filtered rows", rows);
 
@@ -266,11 +276,11 @@
          //set title to the round
          const title = document.querySelector('.title');
          title.textContent = `${round ? round.toUpperCase() : 'Helios Crown War'}`;
-         if(round === 'round1'){
+         if (round === 'round1') {
             safeRanking = 20;
-         }else if (round === 'round2' || round === 'round3') {
+         } else if (round === 'round2' || round === 'round3') {
             safeRanking = 8;
-         }else if (round === 'round4' || round === 'round5') {
+         } else if (round === 'round4' || round === 'round5') {
             safeRanking = 3;
          }
          data.forEach((item, index) => {
@@ -288,10 +298,26 @@
             rankCell.appendChild(num);
             row.appendChild(rankCell);
 
+            //added avatar cell
+            const avatarCell = document.createElement('div');
+            avatarCell.className = 'cell avatar';
+            const avatar = document.createElement('img');
+            avatar.src = item.avatar || '/images/default-avatar.png'; // Fallback to a default avatar if not available
+            avatar.alt = item.nickname;
+            avatar.style.width = '50px';
+            avatar.style.height = '50px';
+            avatar.style.borderRadius = '50%';
+            avatarCell.appendChild(avatar);
+            row.appendChild(avatarCell);
+
+            //create a details cell
+            const detailsCell = document.createElement('div');
+            detailsCell.className = 'cell details';
+            row.appendChild(detailsCell);
             // Name cell with marquee
 
             const nameCell = document.createElement('div');
-            nameCell.className = 'cell name';
+            nameCell.className = 'name';
             const text = document.createElement('div');
             text.textContent = item.name;
             nameCell.appendChild(text);
@@ -309,13 +335,13 @@
                   nameCell.appendChild(marquee);
                }
             });
-            row.appendChild(nameCell);
+            detailsCell.appendChild(nameCell);
 
             // Score cell
             const scoreCell = document.createElement('div');
-            scoreCell.className = 'cell score';
+            scoreCell.className = 'score';
             scoreCell.textContent = item.score.toLocaleString(); // Format with commas
-            row.appendChild(scoreCell);
+            detailsCell.appendChild(scoreCell);
 
             // Crown container
             const crown = document.createElement('div');
@@ -341,7 +367,7 @@
             const row = rows.find(r => r.dataset.name == item.name);
             // update content
             row.querySelector('.rank-number').textContent = index + 1;
-            row.querySelector('.cell.score').textContent = item.score.toLocaleString(); // Format with commas
+            row.querySelector('.score').textContent = item.score.toLocaleString(); // Format with commas
             // crown class
             row.classList.toggle('last', index === data.length - 1);
 
@@ -358,7 +384,7 @@
 
       renderGrid();
 
-      
+
       connection.on("hideRanking", (hideMembers) => {
          console.log("hideRanking", hideMembers);
          hideRowMembers = hideMembers;
