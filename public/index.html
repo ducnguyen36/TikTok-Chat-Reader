@@ -109,7 +109,10 @@
             console.log('reRender data index', data);
             render(data);
         });
-            
+        connection.on('endClockRT', (acceptRTVote) => {
+            console.log('endClockRT', acceptRTVote);
+            $('#acceptRTVote').prop('checked', acceptRTVote);
+        });
         function render(data) {
             console.log('reRender', data);
             diamondsCount = 0;
@@ -282,6 +285,13 @@
             onclick="connection.voting(document.getElementById('idVoting').value, document.querySelector('input[name=\'duration\']:checked').value,
             document.getElementById('SavePoint').value)">
     </div>
+    <div class="inputFileds">
+        <input type="button" id="startClock" value="start RT" onclick="connection.startClock(document.querySelector('input[name=\'duration\']:checked').value * 60)">
+        <input type="button" id="pauseClock" value="pause RT" onclick="connection.pauseClock()">
+        <input type="button" id="resetClock" value="reset RT" onclick="connection.startClock(0)">
+        <input type="checkbox" name="acceptRTVote" id="acceptRTVote">
+        <label for="">RT Vote</label>
+    </div>
     <div class="inputFields">
         <input type="radio" name="duration" value="1" checked>
         <label for="">1 min</label>
@@ -295,6 +305,12 @@
         <label for="">5 min</label>
         <input type="radio" name="duration" value="7">
         <label for="">7 min</label>
+        <input type="radio" name="duration" value="10">
+        <label for="">10 min</label>
+        <input type="radio" name="duration" value="15">
+        <label for="">15 min</label>
+        <input type="radio" name="duration" value="20">
+        <label for="">20 min</label>
     </div>
     <div class="inputFields">
         <input type="radio" name="round" value="0" checked>

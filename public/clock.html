@@ -1,0 +1,111 @@
+<html lang="en">
+
+<head>
+   <meta charset="UTF-8">
+   <title>Score Countdown Box</title>
+   <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"
+      referrerpolicy="no-referrer"></script>
+   <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.4.1/socket.io.min.js" crossorigin="anonymous"
+      referrerpolicy="no-referrer"></script>
+
+   <script src="https://cdn.jsdelivr.net/npm/obs-websocket-js"></script>
+   <script src="connection.js"></script>
+   <script src="app.js"></script>
+   <style>
+      body {
+         background-color: black;
+      }
+      div {
+         font-size: 1em;
+         text-align: center;
+         margin-top: 20px;
+         color: white;
+         font-family: Arial, sans-serif;
+      }
+      span#timer {
+         /* cursor: none; */
+         color: yellow;
+         /* padding: 10px; */
+      }
+   </style>
+</head>
+
+<body>
+   <div>
+      RT <span id="timer">00:00</span>
+   </div>
+   <script>
+      //click function on clock to start timer for 5 minutes if the clock is 00:00
+      //if the clock is running, pause it
+      //if the clock is paused, resume it 
+      document.getElementById('timer').addEventListener('click', () => {
+         const timerElement = document.getElementById('timer');
+         const currentTime = timerElement.textContent;
+         if (currentTime === "00:00") {
+            // Start the clock with a duration of 5 minutes (300 seconds)
+            connection.startClock(300);
+         } else {
+            // Pause or resume the clock
+            connection.pauseClock();
+         }
+      });
+
+      //double click to reset the clock to 00:00
+      document.getElementById('timer').addEventListener('dblclick', () => {
+         const timerElement = document.getElementById('timer');
+         timerElement.textContent = "00:00";
+         if (window.clockInterval) {
+            clearInterval(window.clockInterval);
+         }
+      });
+
+      connection.on('startClock', (duration)=>{
+         console.log('Clock started with duration:', duration);
+         const timerElement = document.getElementById('timer');
+         let timeLeft = duration;
+         //delete old interval if it exists then start a new one to count down
+         if (window.clockInterval) {
+            clearInterval(window.clockInterval);
+         }
+         window.clockInterval = setInterval(() => {
+            if (timeLeft <= 0) {
+               clearInterval(window.clockInterval);
+               timerElement.textContent = "00:00";
+               // send disable accept RT vote
+               connection.endClockRT(false);
+            } else {
+               const minutes = Math.floor(timeLeft / 60);
+               const seconds = timeLeft % 60;
+               timerElement.textContent = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+               timeLeft--;
+            }
+         }, 1000);
+      })
+      //event pause/resume clock in one function depending on interval existence
+      connection.on('pauseClock', () => {
+         const timerElement = document.getElementById('timer');
+         if (window.clockInterval) {
+            clearInterval(window.clockInterval);
+            window.clockInterval = null;
+         } else {
+            // Resume the clock
+            const currentTime = timerElement.textContent;
+            const [minutes, seconds] = currentTime.split(':').map(Number);
+            const totalSeconds = minutes * 60 + seconds;
+            connection.startClock(totalSeconds);
+         }
+      });
+      //event to reset the clock to 00:00
+      connection.on('resetClock', () => {
+         const timerElement = document.getElementById('timer');
+         timerElement.textContent = "00:00";
+         if (window.clockInterval) {
+            clearInterval(window.clockInterval);
+            window.clockInterval = null;
+         }
+      });      
+   </script>
+
+</body>
+
+</html>

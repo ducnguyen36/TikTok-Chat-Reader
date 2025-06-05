@@ -201,6 +201,11 @@ function connect() {
   }
 }
 
+//getkeysbyvalue
+function getKeysByValue(object, value) {
+  return Object.keys(object).filter(key => object[key] === value);
+}
+
 // Prevent Cross site scripting (XSS)
 function sanitize(text) {
   return text.replace(/</g, '&lt;')
@@ -736,15 +741,48 @@ function updateTalentScore(giftData, calculatedScore) {
       .text(talents[0].score + talents[0].receiveDiamond);
   }
 }
+const stickerToTalentUIDMap = {
+  9340: "6528602221674889217",
+  5827: "7486027536091694098",
+  5655: "7174131715304571931",
+  5269: "6914217467078673409",
+  6064: "7488498765876593682",
 
+}
 
 connection.on('gift', (data) => {
   data.round = round;
+  console.log('Event gift', data);
   let nickname = $('#idVoting').val();
   if (data.receiverUserInGroupLive) {
     const receiverUser = talents.find(talent => talent.nickname === data.receiverUserInGroupLive);
     if (!talents.uniqueId) {
       receiverUser.uniqueId = data.receiverUserDetails?.uniqueId;
+    }
+  }
+  if (document.querySelector('[name="acceptRTVote"]').checked && talents[0].uniqueId === 'novix.ht' ) {
+    let talentData = structuredClone(talents);
+    let receiverUserDetails = talentData.find(talent => talent.userId === stickerToTalentUIDMap[data.giftId]);
+    if (receiverUserDetails) {
+      receiverUserDetails.profilePictureUrl = receiverUserDetails.profilePicture.urls[0];
+      data.receiverUserDetails = receiverUserDetails;
+      //also update receiverUserInGroupLive
+      data.receiverUserInGroupLive = receiverUserDetails.nickname;
+    }
+    if (!isPendingStreak(data)) {
+
+      //prepare the data to upload log file
+      talentData.forEach(talent => {
+        // Remove score
+        delete talent.score;
+        talent.receiveDiamond = 0; // Reset receiveDiamond for each talent
+        // Add receiveDiamond based on receiverUserDetails in giftData
+        if (talent.nickname === data.receiverUserInGroupLive) {
+          talent.receiveDiamond = data.diamondCount * data.repeatCount;
+        }
+      });
+      // Emit the gift data to the server for logging
+      connection.updateLogFile(data, talentData);
     }
   }
   if (isVoting && round !== "group" && !data.receiverUserDetails && document.querySelector('[name="acceptVote"]').checked) {
@@ -823,6 +861,8 @@ connection.on('gift', (data) => {
         connection.updateVote(score);
       }
       if (isVoting && groupVoting && document.querySelector('[name="acceptVote"]').checked) connection.updateVote(score);
+
+      if (document.querySelector('[name="acceptRTVote"]').checked || data.giftId === 7934) connection.addScoreToStreak(data.giftId, score);
 
       // If the streak is ongoing, store it
       if (!data.repeatEnd) {

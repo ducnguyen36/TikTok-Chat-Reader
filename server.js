@@ -384,6 +384,26 @@ io.on('connection', (socket) => {
             groupName = '';
         }
     });
+    socket.on('startClock', (duration) => {
+        console.info('startClock', duration);
+        // Emit the startClock event to all clients
+        io.emit('startClock', duration);
+    });
+    socket.on('pauseClock', () => {
+        console.info('pauseClock');
+        // Emit the pauseClock event to all clients including the sender
+        io.emit('pauseClock');
+    });
+    socket.on('endClockRT', (accept) => {
+        console.info('endClockRT', accept);
+        // Emit the acceptRTVote event to all clients
+        socket.broadcast.emit('endClockRT', accept);
+    });
+    socket.on('addScoreToStreak', (sticker, score) => {
+        console.info('addScoreToStreak', sticker, score);
+        // Emit the addScoreToStreak event to all clients
+        socket.broadcast.emit('addScoreToStreak', sticker, score);
+    });
     socket.on('hideRanking', (hideMembers) => {
         console.info('hideRanking', hideMembers);
         // Emit the hideRanking event to all clients

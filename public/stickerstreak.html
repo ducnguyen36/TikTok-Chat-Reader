@@ -1,0 +1,90 @@
+<html lang="en">
+
+<head>
+   <meta charset="UTF-8">
+   <title>Score Countdown Box</title>
+   <link rel="stylesheet" href="stickerstreakstyles.css">
+   <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"
+      referrerpolicy="no-referrer"></script>
+   <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.4.1/socket.io.min.js" crossorigin="anonymous"
+      referrerpolicy="no-referrer"></script>
+
+   <script src="https://cdn.jsdelivr.net/npm/obs-websocket-js"></script>
+   <script src="connection.js"></script>
+   <script src="app.js"></script>
+
+</head>
+
+<body>
+   <script>
+      const stickerToDanceMap = {
+         9340: "Cool", //Bin
+         5827: "Kpop", //Dlee
+         5655: "Cute", //L
+         5269: "Spicy", //Shin
+         6064: "Hot", //Hissin
+         7934: "Family", //heart
+      };
+
+      let scoreBoxesHTML = Object.keys(stickerToDanceMap).map((sticker, index) => `
+         <div class="score-box">
+            <img src="/images/${sticker}.webp" alt="${stickerToDanceMap[sticker]}" class="icon"> 
+            <!-- Score badge -->
+            <div class="score-badge" id='${sticker}-count'>0</div>
+            <!--dance label-->
+            <label onclick=addScoreToStreak('${sticker}',${parseInt(Math.random() * 100) + 1})>${stickerToDanceMap[sticker]}</label> 
+            <!--Countdown background-->
+            <div class="countdown-background">
+               <!-- Countdown bar -->
+               <div class="countdown-bar" id='${sticker}-bar'></div>
+            </div>
+         ${sticker==='7934'?'':`<div class="star-badge">0</div>`}
+         </div>
+      `).join('')
+
+      document.body.innerHTML = scoreBoxesHTML;
+
+      connection.on('addScoreToStreak', (sticker, score) => {
+         console.log('addScoreToStreak', sticker, score);
+         addScoreToStreak(sticker, score);
+      });
+      connection.on('endClockRT', (acceptRTVote)=> {
+         console.log('endClockRT', acceptRTVote);
+            
+         //find out the highest score of the score boxes 
+         let maxScore = $('.score-box').children('.score-badge').toArray().filter(el=>el.nextElementSibling.textContent !== 'Family').reduce((a,b)=>parseInt(a.innerText)>parseInt(b.innerText)?a:b).innerText * 1;
+         console.log('maxScore', maxScore);
+         //find all the score boxes that have the max  if maxScore > 0
+         if(maxScore > 0){
+            let maxScoreBoxes = $('.score-box').children('.score-badge').toArray().filter((badge)=>parseInt(badge.innerText) === maxScore);
+            //add 1 point to the star badge of each max score box
+            maxScoreBoxes.forEach((badge) => {
+               let starBadge = $(badge).siblings('.star-badge');
+               console.log('starBadge', starBadge);
+               starBadge.text(parseInt(starBadge.text()) + 1);
+            });
+         } 
+         
+      });
+      connection.on('startClockRT', (duration) => {
+         console.log('startClockRT', duration);
+         // Reset all score badges to 0
+         resetScoreBadge();
+      });
+      function resetScoreBadge(){
+         // Reset all score badges to 0
+         $('.score-badge').text('0');
+      }
+      function addScoreToStreak(sticker, score) {
+         //when dance is heart, do not reset the countdown, but just add the score
+         // if (dance === 'heart') {
+         const countBadge = document.getElementById(sticker + '-count');
+         if(countBadge) countBadge.textContent = countBadge.textContent * 1 + score;
+         // return; // Exit the function to prevent resetting the countdown
+         // }
+      }
+   </script>
+
+</body>
+
+</html>

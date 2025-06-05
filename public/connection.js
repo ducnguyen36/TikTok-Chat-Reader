@@ -105,6 +105,30 @@ class TikTokIOConnection {
         console.info("hideRanking", hideMembers);
         this.socket.emit('hideRanking', hideMembers);
     }
+    startClock(duration) {
+        console.info("startClock", duration);
+        this.socket.emit('startClock', duration);
+        let acceptVoteCheckbox = document.querySelector('[name="acceptRTVote"]');
+        if (acceptVoteCheckbox) {
+            acceptVoteCheckbox.checked = duration > 0;
+        }
+    }
+    pauseClock() {
+        console.info("pauseClock");
+        this.socket.emit('pauseClock');
+        let acceptVoteCheckbox = document.querySelector('[name="acceptRTVote"]');
+        if (acceptVoteCheckbox) {
+            acceptVoteCheckbox.checked = !acceptVoteCheckbox.checked;
+        }
+    }
+    endClockRT(accept) {
+        console.info("endClockRT", accept);
+        this.socket.emit('endClockRT', accept);
+    }
+    addScoreToStreak(sticker, score) {
+        console.info("addScoreToStreak", sticker, score);
+        this.socket.emit('addScoreToStreak', sticker, score);
+    }
     countdown(duration) {
         document.querySelector('[name="acceptVote"]').checked = true;
         this.toggleAcceptVote(true);
