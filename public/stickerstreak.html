@@ -66,14 +66,14 @@
          } 
          
       });
-      connection.on('startClockRT', (duration) => {
-         console.log('startClockRT', duration);
+      connection.on('startClock', (duration) => {
+         console.log('startClock', duration);
          // Reset all score badges to 0
          resetScoreBadge();
       });
       function resetScoreBadge(){
          // Reset all score badges to 0
-         $('.score-badge').text('0');
+         $('.score-badge').not('[id*="7934"]').text('0');
       }
       function addScoreToStreak(sticker, score) {
          //when dance is heart, do not reset the countdown, but just add the score
