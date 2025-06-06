@@ -26,7 +26,7 @@
          7934: "Family", //heart
       };
 
-      let scoreBoxesHTML = Object.keys(stickerToDanceMap).map((sticker, index) => `
+      let scoreBoxesHTML = Object.keys(stickerToDanceMap).filter(id=>id!=='7934').map((sticker, index) => `
          <div class="score-box">
             <img src="/images/${sticker}.webp" alt="${stickerToDanceMap[sticker]}" class="icon"> 
             <!-- Score badge -->
@@ -38,9 +38,24 @@
                <!-- Countdown bar -->
                <div class="countdown-bar" id='${sticker}-bar'></div>
             </div>
-         ${sticker==='7934'?'':`<div class="star-badge">0</div>`}
+         <div class="star-badge">0</div>
          </div>
       `).join('')
+      scoreBoxesHTML += `
+         <div class="score-box">
+            <img src="/images/7934.webp" alt="${stickerToDanceMap['7934']}" class="icon"> 
+            <!-- Score badge -->
+            <div class="score-badge" id='7934-count'>0</div>
+            <!--dance label-->
+            <label onclick=addScoreToStreak('7934',${parseInt(Math.random() * 100) + 1})>${stickerToDanceMap['7934']}</label> 
+            <!--Countdown background-->
+            <div class="countdown-background">
+               <!-- Countdown bar -->
+               <div class="countdown-bar" id='7934-bar'></div>
+            </div>
+         <div class="star-badge">0</div>
+         </div>
+      `;
 
       document.body.innerHTML = scoreBoxesHTML;
 
