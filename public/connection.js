@@ -81,7 +81,7 @@ class TikTokIOConnection {
         console.info("reRender", uniqueId);
         this.socket.emit('reRender', uniqueId);
     }
-    voting(nickname = "HELIOS", duration, max = 0) {
+    voting(nickname = "NOVIX", duration, max = 0) {
         isVoting = !!duration && max===0;
         isChasing = !!duration && max>0;
         groupVoting = document.querySelector('[name=round]:checked').value === 'group';

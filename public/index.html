@@ -138,6 +138,10 @@
                 );
                 $memberAvatar.click((e) => {
                     $('#idVoting').val(e.target.alt)
+                    const sortedTalents = talents.slice(1).sort((a,b)=>b.score-a.score)
+                    const index = sortedTalents.findIndex(talent => talent.nickname === e.target.alt);
+                    if(index < 1) document.getElementById('SavePoint').value = 0;
+                    else document.getElementById('SavePoint').value = sortedTalents[index - 1].score - sortedTalents[index].score + 1;
                 });
                 // Create the member info element
                 var $memberInfo = $('<div class="memberInfo"></div>');
@@ -303,8 +307,8 @@
         <label for="">4 min</label>
         <input type="radio" name="duration" value="5">
         <label for="">5 min</label>
-        <input type="radio" name="duration" value="7">
-        <label for="">7 min</label>
+        <input type="radio" name="duration" value="6">
+        <label for="">6 min</label>
         <input type="radio" name="duration" value="10">
         <label for="">10 min</label>
         <input type="radio" name="duration" value="15">

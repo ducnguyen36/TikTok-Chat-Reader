@@ -760,7 +760,7 @@ connection.on('gift', (data) => {
       receiverUser.uniqueId = data.receiverUserDetails?.uniqueId;
     }
   }
-  if (document.querySelector('[name="acceptRTVote"]').checked && talents[0].uniqueId === 'novix.ht' ) {
+  if (document.querySelector('[name="acceptRTVote"]').checked && talents[0].uniqueId === 'novix.ht') {
     let talentData = structuredClone(talents);
     let receiverUserDetails = talentData.find(talent => talent.userId === stickerToTalentUIDMap[data.giftId]);
     if (receiverUserDetails) {
@@ -857,26 +857,30 @@ connection.on('gift', (data) => {
         score -= existingEntry.cost;
         scoreTemp = scoreTemp.filter(i => i.groupId !== groupId);
       }
-      if (isVoting && nickname === data.receiverUserInGroupLive && document.querySelector('[name="acceptVote"]').checked) {
-        connection.updateVote(score);
-      }
-      if (isVoting && groupVoting && document.querySelector('[name="acceptVote"]').checked) connection.updateVote(score);
-
-      if (document.querySelector('[name="acceptRTVote"]').checked || data.giftId === 7934) connection.addScoreToStreak(data.giftId, score);
-
       // If the streak is ongoing, store it
       if (!data.repeatEnd) {
         scoreTemp.push({ groupId, cost: data.diamondCount * data.repeatCount });
         //update voting when streak is ongoing
       }
 
-    } else {
-      if (isVoting && nickname === data.receiverUserInGroupLive && document.querySelector('[name="acceptVote"]').checked) {
-        connection.updateVote(score);
-      }
-
-      if (isVoting && groupVoting && document.querySelector('[name="acceptVote"]').checked) connection.updateVote(score);
     }
+    if (isVoting && nickname === data.receiverUserInGroupLive && document.querySelector('[name="acceptVote"]').checked) {
+      connection.updateVote(score);
+    }
+    if (isVoting && groupVoting && document.querySelector('[name="acceptVote"]').checked) connection.updateVote(score);
+    if (isChasing && nickname === data.receiverUserInGroupLive && document.querySelector('[name="acceptVote"]').checked) {
+      connection.updateVote(score);
+    }
+    if (document.querySelector('[name="acceptRTVote"]').checked || data.giftId === 7934) connection.addScoreToStreak(data.giftId, score);
+    // else {
+    //   if (isVoting && nickname === data.receiverUserInGroupLive && document.querySelector('[name="acceptVote"]').checked) {
+    //     connection.updateVote(score);
+    //   }
+    //   if(isChasing && nickname === data.receiverUserInGroupLive && document.querySelector('[name="acceptVote"]').checked) {
+    //     connection.updateVote(score);
+    //   }
+    //   if (isVoting && groupVoting && document.querySelector('[name="acceptVote"]').checked) connection.updateVote(score);
+    // }
 
     // Update room stats and talent scores
     diamondsCount += score;

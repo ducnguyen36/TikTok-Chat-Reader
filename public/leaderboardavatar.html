@@ -199,7 +199,7 @@
       let interval
       connection.on("countdown", duration => {
          const title = document.querySelector('.title');
-         title.textContent = `${round ? round.toUpperCase() : 'Helios Crown War'} ${formatTime(duration)}`
+         title.textContent = `${round ? round.toUpperCase() : 'NOVIX'} ${formatTime(duration)}`
 
          //clear any existing interval
          if (interval) {
@@ -275,7 +275,7 @@
          container.style.height = gridHeight + 'px';
          //set title to the round
          const title = document.querySelector('.title');
-         title.textContent = `${round ? round.toUpperCase() : 'Helios Crown War'}`;
+         title.textContent = `${round ? round.toUpperCase() : 'NOVIX'}`;
          if (round === 'round1') {
             safeRanking = 20;
          } else if (round === 'round2' || round === 'round3') {
