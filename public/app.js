@@ -741,12 +741,19 @@ function updateTalentScore(giftData, calculatedScore) {
       .text(talents[0].score + talents[0].receiveDiamond);
   }
 }
+// const stickerToTalentUIDMap = {
+//   9340: "73819731404701696",//bin
+//   5827: "7288171320381654017",//dlee
+//   5655: "7187027499443307547",//L
+//   5269: "6836794112558613505",//Shin
+//   6064: "6891817299696501761",//hissin
+
+// }
 const stickerToTalentUIDMap = {
-  9340: "73819731404701696",//bin
-  5827: "7288171320381654017",//dlee
-  5655: "7187027499443307547",//L
-  5269: "6836794112558613505",//Shin
-  6064: "6891817299696501761",//hissin
+  9340: "7382010101902738450",//selene hoa hong
+  5827: "7248896565702870021",//aliz kem
+  5655: "6651562457256230913",//kity banh kem
+  5269: "6505541132893159426",//xayan not nhac
 
 }
 
