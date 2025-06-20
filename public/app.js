@@ -767,7 +767,7 @@ connection.on('gift', (data) => {
       receiverUser.uniqueId = data.receiverUserDetails?.uniqueId;
     }
   }
-  if (document.querySelector('[name="acceptRTVote"]').checked && talents[0].uniqueId === 'novix.ht') {
+  if (document.querySelector('[name="acceptRTVote"]').checked && talents[0].uniqueId === 'moonsiren.ht') {
     let talentData = structuredClone(talents);
     let receiverUserDetails = talentData.find(talent => talent.userId === stickerToTalentUIDMap[data.giftId]);
     if (receiverUserDetails) {
