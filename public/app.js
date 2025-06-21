@@ -750,9 +750,9 @@ function updateTalentScore(giftData, calculatedScore) {
 
 // }
 const stickerToTalentUIDMap = {
-  9340: "7382010101902738450",//selene hoa hong
+  9340: "6651562457256230913",//kity banh kem
   5827: "7248896565702870021",//aliz kem
-  5655: "6651562457256230913",//kity banh kem
+  5655: "7382010101902738450",//selene hoa hong
   5269: "6505541132893159426",//xayan not nhac
 
 }
