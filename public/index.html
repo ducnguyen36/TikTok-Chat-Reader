@@ -204,7 +204,7 @@
                                 <span>
                                     ${[...talents].map(talent => `
                                         <button
-                                        ${(row.receiversDetails.find(t => t.userId === talent.userId).receiveDiamond > 0) ? 'class="active"' : ''}
+                                        ${(row.receiversDetails.find(t => t.userId === talent.userId)?.receiveDiamond > 0) ? 'class="active"' : ''}
                                         data-info='${encodeURIComponent(JSON.stringify(row)).replace(/'/g, "%27")}'
                                         onclick=updateLog(this)
                                         >
